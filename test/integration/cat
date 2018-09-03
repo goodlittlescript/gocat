@@ -1,0 +1,77 @@
+#!/bin/bash
+. test/integration/helper
+
+test_cat_reads_from_stdin_by_default () {
+printf "%s\n" abc | $CAT | assert_output "\
+abc
+"
+}
+
+test_cat_concatenates_files () {
+printf "%s\n" c | $CAT <(printf "%s\n" a b) - | assert_output "\
+a
+b
+c
+"
+}
+
+#
+# errors
+#
+
+test_epipe_exits_141 () {
+yes | $CAT | cat >&- 2>/dev/null
+assert_status "${PIPESTATUS[1]}" 141 "EPIPE did not exit 141"
+}
+
+test_interrupt_exits_130 () {
+expect -f - "$CAT" <<"DOC"
+log_user 0
+set timeout 1
+spawn /bin/bash
+send "(printf '%s' a b c; sleep 10) | "
+send [lindex $argv 0]
+send "\r"
+expect {abc}
+send \r\x1A
+send "kill -s INT %1\r"
+send "fg\r"
+send "exit $?\r"
+expect eof
+catch wait result
+exit [lindex $result 3]
+DOC
+assert_status $? 130 "INT did not exit 130"
+}
+
+#
+# -h
+#
+
+test_h_prints_help () {
+$CAT -h | grep -q "usage: $CAT"
+}
+
+#
+# -u
+#
+
+test_u_unbuffers_output () {
+start_time="$(date +%s)"
+n_tries=0
+while [ "$n_tries" -lt 20 ]
+do
+   printf "%s\n" "$n_tries"
+   sleep 0.1
+   n_tries="$((n_tries + 1))"
+done | $CAT -u | grep -q '.'
+exit_status="${PIPESTATUS[1]}"
+end_time="$(date +%s)"
+
+assert_status "$exit_status" 141 "expected EPIPE exit with -u"
+
+[ $((end_time - start_time)) -lt 2 ]
+assert_status $? 0 "output was not unbuffered"
+}
+
+. ts
