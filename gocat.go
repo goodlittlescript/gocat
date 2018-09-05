@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 import "os"
+import "io"
 import "github.com/spf13/pflag"
 
 func check(e error) {
@@ -37,7 +38,7 @@ options:
 		os.Exit(0)
 	}
 
-	files := os.Args[1:]
+	files := pflag.Args()
 	if len(files) == 0 {
 		files = append(files, "-")
 	}
@@ -53,11 +54,21 @@ options:
 			defer input.Close()
 		}
 
-		data := make([]byte, 100)
-		_, err = input.Read(data)
-		check(err)
+		buffer := make([]byte, 100)
+		for {
+			nbytes, err := input.Read(buffer)
+			if err != nil {
+				if err != io.EOF {
+					check(err)
+				}
 
-		_, err = os.Stdout.Write(data)
-		check(err)
+				break
+			}
+
+			_, err = os.Stdout.Write(buffer[:nbytes])
+			if err != nil {
+				check(err)
+			}
+		}
 	}
 }

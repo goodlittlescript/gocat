@@ -21,7 +21,7 @@ c
 
 test_epipe_exits_141 () {
 yes | $CAT | cat >&- 2>/dev/null
-assert_status "${PIPESTATUS[1]}" 141 "EPIPE did not exit 141"
+assert_status 141 "${PIPESTATUS[1]}" "EPIPE did not exit 141"
 }
 
 test_interrupt_exits_130 () {
@@ -41,7 +41,7 @@ expect eof
 catch wait result
 exit [lindex $result 3]
 DOC
-assert_status $? 130 "INT did not exit 130"
+assert_status 130 $? "INT did not exit 130"
 }
 
 #
@@ -68,10 +68,10 @@ done | $CAT -u | grep -q '.'
 exit_status="${PIPESTATUS[1]}"
 end_time="$(date +%s)"
 
-assert_status "$exit_status" 141 "expected EPIPE exit with -u"
+assert_status 141 "$exit_status" "expected EPIPE exit with -u"
 
 [ $((end_time - start_time)) -lt 2 ]
-assert_status $? 0 "output was not unbuffered"
+assert_status 0 $? "output was not unbuffered"
 }
 
 . ts
