@@ -13,14 +13,18 @@ RUN apk add --no-cache curl bash gawk diffutils expect && \
     chmod +x /usr/local/bin/ts && \
     apk add --no-cache git build-base
 
-# Add build dependencies
-RUN go get github.com/spf13/pflag
+# Enable go modules
+ENV GO111MODULE=on
+
+# Add project dependencies
+COPY go.mod go.sum /go/src/$APPNAME/
+RUN go mod download
 
 COPY . .
 
 #############################################################################
 FROM shell as build
-RUN go build && go install -v
+RUN go build ./... && go install -v
 
 #############################################################################
 FROM alpine:3.7 as app
