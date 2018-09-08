@@ -23,7 +23,7 @@ FROM shell as build
 RUN go build && go install -v
 
 #############################################################################
-FROM alpine:latest as app
+FROM alpine:3.7 as app
 ENV PATH="/app/bin:$PATH"
 WORKDIR /app/
 RUN apk --no-cache add ca-certificates
