@@ -1,9 +1,9 @@
 package main
 
 import (
-    "testing"
+	"testing"
 )
 
 func TestGocat(t *testing.T) {
-    
+
 }

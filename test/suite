@@ -1,4 +1,3 @@
 #!/bin/bash
-go test &&
-go build &&
+./test/unit/suite &&
 ./test/integration/suite
