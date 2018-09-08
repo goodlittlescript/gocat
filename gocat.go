@@ -1,15 +1,10 @@
 package main
 
-import "fmt"
-import "os"
-import "io"
-import "github.com/spf13/pflag"
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
+import (
+	"fmt"
+	"github.com/spf13/pflag"
+	"os"
+)
 
 func main() {
 	var help bool
@@ -50,25 +45,10 @@ options:
 			input = os.Stdin
 		} else {
 			input, err = os.Open(file)
-			check(err)
+			Check(err)
 			defer input.Close()
 		}
 
-		buffer := make([]byte, 100)
-		for {
-			nbytes, err := input.Read(buffer)
-			if err != nil {
-				if err != io.EOF {
-					check(err)
-				}
-
-				break
-			}
-
-			_, err = os.Stdout.Write(buffer[:nbytes])
-			if err != nil {
-				check(err)
-			}
-		}
+		CopyStream(input, os.Stdout, 1)
 	}
 }
