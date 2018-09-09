@@ -1,11 +1,5 @@
 FROM golang:1.11-alpine3.7 as shell
 
-ARG APPNAME
-
-# Set working directory
-RUN mkdir -p /go/src/$APPNAME
-WORKDIR /go/src/$APPNAME
-
 # Install development dependencies
 # * ts: curl bash gawk diffutils expect
 # * go: git build-base
@@ -16,6 +10,11 @@ RUN apk add --no-cache curl bash gawk diffutils expect && \
 
 # Enable go modules
 ENV GO111MODULE=on
+
+# Set working directory
+ARG APPNAME
+RUN mkdir -p /go/src/$APPNAME
+WORKDIR /go/src/$APPNAME
 
 # Add project dependencies
 COPY go.mod go.sum /go/src/$APPNAME/
