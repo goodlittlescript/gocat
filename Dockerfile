@@ -7,7 +7,8 @@ RUN mkdir -p /go/src/$APPNAME
 WORKDIR /go/src/$APPNAME
 
 # Install development dependencies
-# * curl bash gawk diffutils expect for ts
+# * ts: curl bash gawk diffutils expect
+# * go: git build-base
 RUN apk add --no-cache curl bash gawk diffutils expect && \
     curl -o /usr/local/bin/ts -L https://raw.githubusercontent.com/thinkerbot/ts/v2.0.2/bin/ts && \
     chmod +x /usr/local/bin/ts && \
