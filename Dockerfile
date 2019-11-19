@@ -12,24 +12,23 @@ RUN apk add --no-cache curl bash gawk diffutils expect && \
 ENV GO111MODULE=on
 
 # Set working directory
-ARG APPNAME
-RUN mkdir -p /go/src/$APPNAME
-WORKDIR /go/src/$APPNAME
+ARG PACKAGE
+RUN mkdir -p /go/src/$PACKAGE
+WORKDIR /go/src/$PACKAGE
 
 # Add project dependencies
-COPY go.mod go.sum /go/src/$APPNAME/
+COPY go.mod go.sum /go/src/$PACKAGE/
 RUN go mod download
 
 COPY . .
 
 #############################################################################
 FROM shell as build
-RUN go build ./... && go install -v
+RUN go install
 
 #############################################################################
 FROM alpine:3.7 as app
 ENV PATH="/app/bin:$PATH"
 WORKDIR /app/
 RUN apk --no-cache add ca-certificates
-ARG APPNAME
-COPY --from=build /go/bin/$APPNAME /app/bin/$APPNAME
+COPY --from=build /go/bin /app/bin

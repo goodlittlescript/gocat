@@ -1,4 +1,6 @@
-IMAGE_NAME=gocat
+PACKAGE=goodlittlescript.com/gocat
+COMMAND=$(notdir $(PACKAGE))
+IMAGE_NAME=$(COMMAND)
 TARGETS=shell app
 
 #
@@ -7,23 +9,23 @@ TARGETS=shell app
 
 images:
 	@for target in $(TARGETS); \
-	do docker build --build-arg APPNAME=$(IMAGE_NAME) --target $$target -t $(IMAGE_NAME):$$target .; \
+	do docker build --build-arg PACKAGE=$(PACKAGE) --target $$target -t $(IMAGE_NAME):$$target .; \
 	done
 
 run:
-	docker run --rm -i $(IMAGE_NAME):app $(IMAGE_NAME)
+	docker run --rm -i $(IMAGE_NAME):app /app/bin/$(COMMAND)
 
 test:
-	docker run --rm -v $(PWD):/go/src/$(IMAGE_NAME) $(IMAGE_NAME):shell ./test/suite
+	docker run --rm -v $(PWD):/go/src/$(PACKAGE) $(IMAGE_NAME):shell ./test/suite
 
 lint:
-	docker run --rm -v $(PWD):/go/src/$(IMAGE_NAME) $(IMAGE_NAME):shell test -z "$$(gofmt -s -e -d . | tee /dev/stderr)"
+	docker run --rm -v $(PWD):/go/src/$(PACKAGE) $(IMAGE_NAME):shell test -z "$$(gofmt -s -e -d . | tee /dev/stderr)"
 
 fix:
-	docker run --rm -v $(PWD):/go/src/$(IMAGE_NAME) $(IMAGE_NAME):shell gofmt -s -w .
+	docker run --rm -v $(PWD):/go/src/$(PACKAGE) $(IMAGE_NAME):shell gofmt -s -w .
 
 shell:
-	docker run -it --rm -v $(PWD):/go/src/$(IMAGE_NAME) $(IMAGE_NAME):shell /bin/bash
+	docker run -it --rm -v $(PWD):/go/src/$(PACKAGE) $(IMAGE_NAME):shell /bin/bash
 
 #
 # deploy
