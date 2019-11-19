@@ -1,12 +1,26 @@
-FROM golang:1.11-alpine3.7 as shell
+FROM golang:1.11 as base
 
-# Install development dependencies
-# * ts: curl bash gawk diffutils expect
-# * go: git build-base
-RUN apk add --no-cache curl bash gawk diffutils expect && \
+# Setup app dir and user
+RUN apt-get update && \
+    mkdir -p /app && \
+    groupadd -g 900 appuser && \
+    useradd -r -u 900 -g appuser appuser -m -s /bin/bash && \
+    chown -R appuser:appuser /app
+ENV PATH="/app/bin:$PATH"
+WORKDIR /app
+USER appuser
+
+#############################################################################
+FROM base as shell
+
+USER root
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates sudo vim less build-essential curl git man && \
+    adduser appuser sudo && \
+    printf "%s\n" "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     curl -o /usr/local/bin/ts -L https://raw.githubusercontent.com/thinkerbot/ts/v2.0.2/bin/ts && \
-    chmod +x /usr/local/bin/ts && \
-    apk add --no-cache git build-base
+    chmod +x /usr/local/bin/ts
+USER appuser
 
 # Enable go modules
 ENV GO111MODULE=on
@@ -27,8 +41,5 @@ FROM shell as build
 RUN go install
 
 #############################################################################
-FROM alpine:3.7 as app
-ENV PATH="/app/bin:$PATH"
-WORKDIR /app/
-RUN apk --no-cache add ca-certificates
+FROM base as app
 COPY --from=build /go/bin /app/bin
