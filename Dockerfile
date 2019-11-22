@@ -14,8 +14,7 @@ USER appuser
 FROM base as shell
 
 USER root
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates sudo vim less build-essential curl git man expect && \
+RUN apt-get install -y --no-install-recommends ca-certificates sudo vim less build-essential curl git man expect && \
     adduser appuser sudo && \
     printf "%s\n" "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     curl -o /usr/local/bin/ts -L https://raw.githubusercontent.com/thinkerbot/ts/v2.0.2/bin/ts && \
