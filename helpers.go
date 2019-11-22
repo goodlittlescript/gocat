@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"os"
 )
 
 func Check(e error) {
@@ -11,7 +10,7 @@ func Check(e error) {
 	}
 }
 
-func CopyStream(input *os.File, output *os.File, chunk_size int) {
+func CopyStream(input io.Reader, output io.Writer, chunk_size int) {
 	buffer := make([]byte, chunk_size)
 	for {
 		nbytes, err := input.Read(buffer)
