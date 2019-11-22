@@ -1,15 +1,15 @@
 package main
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestCopyStream(t *testing.T) {
-	var tests = []struct{
-		input string
+	var tests = []struct {
+		input      string
 		chunk_size int
-	} {
+	}{
 		{"abc", 1},
 		{"abc", 2},
 		{"abc", 3},

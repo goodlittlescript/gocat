@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-func CopyStream(input io.Reader, output io.Writer, chunk_size int) (error) {
+func CopyStream(input io.Reader, output io.Writer, chunk_size int) error {
 	buffer := make([]byte, chunk_size)
 	for {
 		n, rerr := input.Read(buffer)
