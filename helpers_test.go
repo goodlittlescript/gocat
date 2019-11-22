@@ -6,12 +6,23 @@ import (
 )
 
 func TestCopyStream(t *testing.T) {
-	actual := "Lorem ipsum"
-	src := strings.NewReader(actual)
-	dst := new(strings.Builder)
-	CopyStream(src, dst, 1)
-	expected := dst.String()
-	if actual != expected {
-		t.Errorf("Failed %s != %s", actual, expected)
+	var tests = []struct{
+		input string
+		chunk_size int
+	} {
+		{"abc", 1},
+		{"abc", 2},
+		{"abc", 3},
+		{"abc", 4},
 	}
+	for _, test := range tests {
+		src := strings.NewReader(test.input)
+		dst := new(strings.Builder)
+		CopyStream(src, dst, test.chunk_size)
+
+		if test.input != dst.String() {
+			t.Errorf("CopyStream(%s, _, %d) => %s", test.input, test.chunk_size, dst.String())
+		}
+	}
+
 }

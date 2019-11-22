@@ -45,7 +45,10 @@ options:
 			input = os.Stdin
 		} else {
 			input, err = os.Open(file)
-			Check(err)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 			defer input.Close()
 		}
 
