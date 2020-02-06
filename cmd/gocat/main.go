@@ -1,40 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/spf13/pflag"
+	"gocat"
 	"os"
-  "gocat"
 )
 
 func main() {
-	var help bool
-	var unbuffer bool
-	var desc = `
+	flag.Usage = gocat.Usage(`
 usage: gocat [options] FILES...
 
 Concatenate and print files.
 
 options:
 
-`
-	pflag.BoolVarP(&help, "help", "h", false, "print help")
-	pflag.BoolVarP(&unbuffer, "unbuffer", "u", false, "unbuffer output")
+`)
+	help := flag.Bool("h", false, "print help")
+	flag.Bool("u", false, "unbuffer output")
+	files := gocat.ParseToEnd()
 
-	pflag.Usage = func() {
-		fmt.Printf(desc[1:])
-		pflag.CommandLine.SetOutput(os.Stdout)
-		pflag.PrintDefaults()
-		fmt.Println()
-	}
-	pflag.Parse()
-
-	if help {
-		pflag.Usage()
+	if *help {
+		flag.CommandLine.SetOutput(os.Stdout)
+		flag.Usage()
 		os.Exit(0)
 	}
 
-	files := pflag.Args()
 	if len(files) == 0 {
 		files = append(files, "-")
 	}
