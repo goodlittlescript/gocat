@@ -1,7 +1,10 @@
 #!/bin/bash
 . test/integration/helper
 
-go install ./cmd/gocat || exit 1
+if [ "$CAT" = "gocat" ]
+then go install ./cmd/gocat || exit 1
+fi
+printf "test cmd: %s\n" "$CAT" >&2
 
 test_cat_reads_from_stdin_by_default () {
 printf "%s\n" abc | $CAT | assert_output "\
@@ -51,6 +54,7 @@ assert_status 130 $? "INT did not exit 130"
 #
 
 test_h_prints_help () {
+skip_unless_gocat
 $CAT -h | grep -q "usage: $CAT"
 }
 

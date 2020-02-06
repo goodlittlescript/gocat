@@ -1,3 +1,9 @@
 # Setup test paths
 export PATH="$PWD:$PATH"
-export CAT="gocat"
+export CAT="${CAT:-gocat}"
+
+skip_unless_gocat () {
+  if [ "$CAT" != "gocat" ]
+  then skip "not gocat"
+  fi
+}

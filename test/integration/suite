@@ -1,3 +1,4 @@
 #!/bin/bash
 go build ./... &&
-ts test/integration/cat "$@"
+ts test/integration/cat "$@" &&
+CAT=cat ts test/integration/cat "$@"
