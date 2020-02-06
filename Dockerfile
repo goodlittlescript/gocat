@@ -1,4 +1,4 @@
-FROM golang:1.11 as base
+FROM golang:1.13 as base
 
 # Setup app dir and user
 RUN apt-get update && \
@@ -22,7 +22,7 @@ RUN apt-get install -y --no-install-recommends ca-certificates sudo vim less bui
 USER appuser
 
 # Enable go modules
-ENV GO111MODULE=on
+ENV GO111MODULE=auto
 
 # Set working directory
 ARG PACKAGE

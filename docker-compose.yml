@@ -1,0 +1,12 @@
+---
+version: '3.6'
+services:
+  shell:
+    build:
+      network: host
+      context: .
+      target: shell
+    environment: {}
+    volumes:
+    - $PWD/tmp/home:/home/appuser
+    - .:/go/src/$PACKAGE

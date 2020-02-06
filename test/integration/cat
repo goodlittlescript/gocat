@@ -1,6 +1,8 @@
 #!/bin/bash
 . test/integration/helper
 
+go install ./cmd/gocat || exit 1
+
 test_cat_reads_from_stdin_by_default () {
 printf "%s\n" abc | $CAT | assert_output "\
 abc

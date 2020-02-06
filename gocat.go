@@ -1,57 +1,24 @@
-package main
+package gocat
 
 import (
-	"fmt"
-	"github.com/spf13/pflag"
-	"os"
+	"io"
 )
 
-func main() {
-	var help bool
-	var unbuffer bool
-	var desc = `
-usage: gocat [options] FILES...
+func CopyStream(input io.Reader, output io.Writer, chunk_size int) error {
+	buffer := make([]byte, chunk_size)
+	for {
+		n, rerr := input.Read(buffer)
 
-Concatenate and print files.
-
-options:
-
-`
-	pflag.BoolVarP(&help, "help", "h", false, "print help")
-	pflag.BoolVarP(&unbuffer, "unbuffer", "u", false, "unbuffer output")
-
-	pflag.Usage = func() {
-		fmt.Printf(desc[1:])
-		pflag.CommandLine.SetOutput(os.Stdout)
-		pflag.PrintDefaults()
-		fmt.Println()
-	}
-	pflag.Parse()
-
-	if help {
-		pflag.Usage()
-		os.Exit(0)
-	}
-
-	files := pflag.Args()
-	if len(files) == 0 {
-		files = append(files, "-")
-	}
-
-	var input *os.File
-	var err error
-	for _, file := range files {
-		if file == "-" {
-			input = os.Stdin
-		} else {
-			input, err = os.Open(file)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			defer input.Close()
+		_, werr := output.Write(buffer[:n])
+		if werr != nil {
+			return werr
 		}
 
-		CopyStream(input, os.Stdout, 1)
+		if rerr != nil {
+			if rerr == io.EOF {
+				return nil
+			}
+			return rerr
+		}
 	}
 }
