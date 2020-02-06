@@ -30,20 +30,31 @@ options:
 		files = append(files, "-")
 	}
 
-	var input *os.File
-	var err error
+
 	for _, file := range files {
 		if file == "-" {
-			input = os.Stdin
-		} else {
-			input, err = os.Open(file)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			defer input.Close()
+			file = "/dev/stdin"
 		}
 
-		gocat.CopyStream(input, os.Stdout, 1)
-	}
+		f, err := os.Stat(file)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "gocat: %s: No such file or directory\n", file)
+			os.Exit(1)
+		}
+
+		if f.IsDir() {
+			fmt.Fprintf(os.Stderr, "gocat: %s: Is a directory\n", file)
+			os.Exit(1)
+		}
+
+    input, err := os.Open(file)
+    if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+    }
+    defer input.Close()
+
+    gocat.CopyStream(input, os.Stdout, 1)
+  }
 }

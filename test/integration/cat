@@ -24,6 +24,21 @@ c
 # errors
 #
 
+test_file_does_not_exist () {
+$CAT nosuchfile 2>&1 |
+assert_output "\
+$CAT: nosuchfile: No such file or directory
+"
+}
+
+test_file_is_a_directory () {
+mkdir -p "$ts_test_dir"
+$CAT "$ts_test_dir" 2>&1 |
+assert_output "\
+$CAT: $ts_test_dir: Is a directory
+"
+}
+
 test_epipe_exits_141 () {
 yes | $CAT | cat >&- 2>/dev/null
 assert_status 141 "${PIPESTATUS[1]}" "EPIPE did not exit 141"
