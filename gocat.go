@@ -50,8 +50,8 @@ func ParseToEnd() []string {
 	return args
 }
 
-func CopyStream(input io.Reader, output io.Writer, chunk_size int) error {
-	buffer := make([]byte, chunk_size)
+func CopyStream(input io.Reader, output io.Writer) error {
+	buffer := make([]byte, 1024)
 	for {
 		n, rerr := input.Read(buffer)
 
@@ -69,9 +69,11 @@ func CopyStream(input io.Reader, output io.Writer, chunk_size int) error {
 	}
 }
 
-func CopyList(sources []string, target string, recursive bool) ([][2]string, error) {
+func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io.Reader, io.Writer) error) error {
 	fileList := [][2]string{}
 
+	// Assemble list of {sourceFile, sourceDir}
+	// Keep the dir so that relative paths may be calculated if needed.
 	for _, source := range sources {
 		if recursive {
 			sourceDir := source
@@ -89,7 +91,7 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 			})
 
 			if err != nil {
-				return nil, err
+				return err
 			}
 		} else {
 			sourceFile := source
@@ -97,12 +99,13 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 		}
 	}
 
+	// Convert to {sourceFile, targetFile}
 	if len(sources) > 1 || recursive {
 		if !recursive {
 			t, err := os.Stat(target)
 
 			if err != nil || !t.IsDir() {
-				return nil, fmt.Errorf("target '%s' is not a directory\n", target)
+				return fmt.Errorf("target '%s' is not a directory\n", target)
 			}
 		}
 
@@ -112,7 +115,7 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 
 			rel, err := filepath.Rel(sourceDir, sourceFile)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			targetFile := filepath.Join(target, rel)
@@ -122,6 +125,7 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 		fileList[0][1] = target
 	}
 
+	// Check each to confirm copy will work
 	for _, item := range fileList {
 		sourceFile := item[0]
 		targetFile := item[1]
@@ -129,11 +133,11 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 		s, err := os.Stat(sourceFile)
 
 		if err != nil {
-			return nil, fmt.Errorf("%s: No such file or directory\n", sourceFile)
+			return fmt.Errorf("%s: No such file or directory\n", sourceFile)
 		}
 
 		if s.IsDir() {
-			return nil, fmt.Errorf("%s is a directory (not copied).\n", sourceFile)
+			return fmt.Errorf("%s is a directory (not copied).\n", sourceFile)
 		}
 
 		t, err := os.Stat(targetFile)
@@ -145,9 +149,34 @@ func CopyList(sources []string, target string, recursive bool) ([][2]string, err
 		}
 
 		if sourceFile == targetFile {
-			return nil, fmt.Errorf("%s and %s are identical (not copied).\n", sourceFile, targetFile)
+			return fmt.Errorf("%s and %s are identical (not copied).\n", sourceFile, targetFile)
 		}
 	}
 
-	return fileList, nil
+	// Copy files
+	for _, item := range fileList {
+		sourceFile := item[0]
+		targetFile := item[1]
+
+		input, err := os.Open(sourceFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+		defer input.Close()
+
+		os.MkdirAll(filepath.Dir(targetFile), os.ModePerm)
+		output, err := os.Create(targetFile)
+		if err != nil {
+			return err
+		}
+		defer output.Close()
+
+		err = copyfunc(input, output)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

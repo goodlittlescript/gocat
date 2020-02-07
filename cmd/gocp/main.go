@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gocat"
 	"os"
-	"path/filepath"
 )
 
 func fileExists(file string) bool {
@@ -42,35 +41,9 @@ options:
 
 	sources := args[:len(args)-1]
 	target := args[len(args)-1]
-	fileList, err := gocat.CopyList(sources, target, recursive)
+	err := gocat.CopyFiles(sources, target, recursive, gocat.CopyStream)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gocp: %s\n", err)
 		os.Exit(1)
-	}
-
-	for _, source_target := range fileList {
-		sourcefile := source_target[0]
-		targetfile := source_target[1]
-
-		input, err := os.Open(sourcefile)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
-		defer input.Close()
-
-		os.MkdirAll(filepath.Dir(targetfile), os.ModePerm)
-		output, err := os.Create(targetfile)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
-		defer output.Close()
-
-		err = gocat.CopyStream(input, output, 1024)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
 	}
 }

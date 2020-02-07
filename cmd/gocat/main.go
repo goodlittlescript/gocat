@@ -54,6 +54,6 @@ options:
 		}
 		defer input.Close()
 
-		gocat.CopyStream(input, os.Stdout, 1)
+		gocat.CopyStream(input, os.Stdout)
 	}
 }
