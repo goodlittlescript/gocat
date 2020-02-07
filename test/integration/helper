@@ -1,9 +1,16 @@
 # Setup test paths
 export PATH="$PWD:$PATH"
 export CAT="${CAT:-gocat}"
+export CP="${CP:-gocp}"
 
 skip_unless_gocat () {
   if [ "$CAT" != "gocat" ]
   then skip "not gocat"
+  fi
+}
+
+skip_unless_gocp () {
+  if [ "$CP" != "gocp" ]
+  then skip "not gocp"
   fi
 }

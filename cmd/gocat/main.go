@@ -9,7 +9,7 @@ import (
 
 func main() {
 	flag.Usage = gocat.Usage(`
-usage: gocat [options] FILES...
+usage: gocat [options] [file ...]
 
 Concatenate and print files.
 

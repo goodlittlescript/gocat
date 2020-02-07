@@ -1,0 +1,105 @@
+#!/bin/bash
+. test/integration/helper
+
+if [ "$CP" = "gocp" ]
+then go install ./cmd/gocp || exit 1
+fi
+printf "test cmd: %s\n" "$CP" >&2
+
+setup () {
+mkdir -p "$ts_test_dir"
+cd "$ts_test_dir"
+}
+
+test_cp () {
+printf "data\n" > src
+$CP src dst
+cat dst | assert_output "\
+data
+"
+}
+
+test_cp_overwrites_existing () {
+printf "data\n" > src
+printf "overwritten\n" > dst
+$CP src dst
+cat dst | assert_output "\
+data
+"
+}
+
+#
+# errors
+#
+
+test_no_src_specified () {
+printf "data\n" > src
+! $CP
+}
+
+test_no_dst_specified () {
+printf "data\n" > src
+! $CP src
+}
+
+test_src_does_not_exist () {
+$CP src dst
+assert_status 1 $?
+}
+
+test_src_is_not_file () {
+mkdir src
+$CP src dst
+assert_status 1 $?
+}
+
+test_src_dst_are_same_file () {
+printf "data\n" > src
+$CP src src
+assert_status 1 $?
+}
+
+#
+# -h
+#
+
+test_h_prints_help () {
+skip_unless_gocp
+$CP -h | grep -q "usage: $CP"
+}
+
+#
+# -R
+#
+
+test_R_copies_recursively () {
+mkdir -p "src/dir"
+printf "data a\n" > "src/a"
+printf "data b\n" > "src/dir/b"
+
+$CP -R src dst
+
+cat "dst/a" "dst/dir/b" | assert_output "\
+data a
+data b
+"
+}
+
+#
+# -r
+#
+
+test_r_copies_recursively () {
+mkdir -p "src/dir"
+printf "data a\n" > "src/a"
+printf "data b\n" > "src/dir/b"
+
+$CP -r src dst
+
+cat "dst/a" "dst/dir/b" | assert_output "\
+data a
+data b
+"
+}
+
+. ts
