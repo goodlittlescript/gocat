@@ -69,6 +69,44 @@ func CopyStream(input io.Reader, output io.Writer) error {
 	}
 }
 
+func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writer) error) error {
+	if len(files) == 0 {
+		files = append(files, "-")
+	}
+
+	for i, file := range files {
+		if file == "-" {
+			file = "/dev/stdin"
+			files[i] = file
+		}
+
+		f, err := os.Stat(file)
+
+		if err != nil {
+			return fmt.Errorf("%s: No such file or directory", file)
+		}
+
+		if f.IsDir() {
+			return fmt.Errorf("%s: Is a directory", file)
+		}
+	}
+
+	for _, file := range files {
+		input, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer input.Close()
+
+		err = copyfunc(input, output)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io.Reader, io.Writer) error) error {
 	fileList := [][2]string{}
 
@@ -105,7 +143,7 @@ func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io
 			t, err := os.Stat(target)
 
 			if err != nil || !t.IsDir() {
-				return fmt.Errorf("target '%s' is not a directory\n", target)
+				return fmt.Errorf("target '%s' is not a directory", target)
 			}
 		}
 
@@ -133,11 +171,11 @@ func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io
 		s, err := os.Stat(sourceFile)
 
 		if err != nil {
-			return fmt.Errorf("%s: No such file or directory\n", sourceFile)
+			return fmt.Errorf("%s: No such file or directory", sourceFile)
 		}
 
 		if s.IsDir() {
-			return fmt.Errorf("%s is a directory (not copied).\n", sourceFile)
+			return fmt.Errorf("%s is a directory (not copied).", sourceFile)
 		}
 
 		t, err := os.Stat(targetFile)
@@ -149,7 +187,7 @@ func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io
 		}
 
 		if sourceFile == targetFile {
-			return fmt.Errorf("%s and %s are identical (not copied).\n", sourceFile, targetFile)
+			return fmt.Errorf("%s and %s are identical (not copied).", sourceFile, targetFile)
 		}
 	}
 
