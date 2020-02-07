@@ -36,27 +36,20 @@ Add `gocat` to your PATH (or execute it directly).
 Clone repo, build images.
 
 ```bash
-make images
-```
-
-Run the utility, test, fix, and lint.
-
-```bash
-make run <<<"success"
-make test fix lint
+./Stackfile images
 ```
 
 Get a shell for development.
 
 ```bash
-make shell
+./Stackfile shell
 # go build
 # ./gocat <<<"success"
 # ./test/suite
 ```
 
-Package.
+Test, fix, and lint.
 
 ```bash
-make artifacts
+./Stackfile test fix lint
 ```
