@@ -19,6 +19,17 @@ data
 "
 }
 
+test_cp_multiple_sources () {
+printf "data a\n" > src_a
+printf "data b\n" > src_b
+mkdir dst
+$CP src_a src_b dst
+cat dst/src_a dst/src_b | assert_output "\
+data a
+data b
+"
+}
+
 test_cp_overwrites_existing () {
 printf "data\n" > src
 printf "overwritten\n" > dst
@@ -57,6 +68,19 @@ test_src_dst_are_same_file () {
 printf "data\n" > src
 $CP src src
 assert_status 1 $?
+}
+
+test_multiple_sources_when_dst_does_not_exist () {
+printf "data a\n" > src_a
+printf "data b\n" > src_b
+! $CP src_a src_b dst
+}
+
+test_multiple_sources_when_dst_is_file () {
+printf "data a\n" > src_a
+printf "data b\n" > src_b
+touch dst
+! $CP src_a src_b dst
 }
 
 #

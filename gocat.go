@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -66,4 +67,87 @@ func CopyStream(input io.Reader, output io.Writer, chunk_size int) error {
 			return rerr
 		}
 	}
+}
+
+func CopyList(sources []string, target string, recursive bool) ([][2]string, error) {
+	fileList := [][2]string{}
+
+	for _, source := range sources {
+		if recursive {
+			sourceDir := source
+			err := filepath.Walk(sourceDir, func(sourceFile string, f os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+
+				if f.IsDir() {
+					return nil
+				}
+
+				fileList = append(fileList, [2]string{sourceFile, sourceDir})
+				return nil
+			})
+
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			sourceFile := source
+			fileList = append(fileList, [2]string{sourceFile, filepath.Dir(source)})
+		}
+	}
+
+	if len(sources) > 1 || recursive {
+		if !recursive {
+			t, err := os.Stat(target)
+
+			if err != nil || !t.IsDir() {
+				return nil, fmt.Errorf("target '%s' is not a directory\n", target)
+			}
+		}
+
+		for i, item := range fileList {
+			sourceFile := item[0]
+			sourceDir := item[1]
+
+			rel, err := filepath.Rel(sourceDir, sourceFile)
+			if err != nil {
+				return nil, err
+			}
+
+			targetFile := filepath.Join(target, rel)
+			fileList[i][1] = targetFile
+		}
+	} else {
+		fileList[0][1] = target
+	}
+
+	for _, item := range fileList {
+		sourceFile := item[0]
+		targetFile := item[1]
+
+		s, err := os.Stat(sourceFile)
+
+		if err != nil {
+			return nil, fmt.Errorf("%s: No such file or directory\n", sourceFile)
+		}
+
+		if s.IsDir() {
+			return nil, fmt.Errorf("%s is a directory (not copied).\n", sourceFile)
+		}
+
+		t, err := os.Stat(targetFile)
+
+		if err == nil {
+			if t.IsDir() {
+				targetFile = filepath.Join(targetFile)
+			}
+		}
+
+		if sourceFile == targetFile {
+			return nil, fmt.Errorf("%s and %s are identical (not copied).\n", sourceFile, targetFile)
+		}
+	}
+
+	return fileList, nil
 }
