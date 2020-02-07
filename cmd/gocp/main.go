@@ -16,6 +16,7 @@ func main() {
 	recursive := false
 	flag.Usage = gocat.Usage(`
 usage: gocp [options] source_file target_file
+       gocp [options] source_file ... target
 
 Copy files.
 
@@ -34,16 +35,16 @@ options:
 	}
 
 	if len(args) < 2 {
-		flag.CommandLine.SetOutput(os.Stderr)
-		flag.Usage()
+		fmt.Fprintf(os.Stderr, "%s\n", gocat.Desc())
 		os.Exit(1)
 	}
 
 	sources := args[:len(args)-1]
 	target := args[len(args)-1]
 	err := gocat.CopyFiles(sources, target, recursive, gocat.CopyStream)
+
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "gocp: %s\n", err)
+		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
 		os.Exit(1)
 	}
 }
