@@ -107,7 +107,62 @@ func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writ
 	return nil
 }
 
-func CopyFiles(sources []string, target string, recursive bool, copyfunc func(io.Reader, io.Writer) error) error {
+type CopyFunc func(io.Reader, io.Writer) error
+
+func CopyFiles(args []string, recursive bool, copyfunc CopyFunc) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no source specified")
+	}
+
+	if len(args) == 1 {
+		return fmt.Errorf("no target specified")
+	}
+
+	sources := args[:len(args)-1]
+	target := args[len(args)-1]
+
+	// 1) len(args) = 2 , error if either are directories
+	// 2) len(args) >= 2, *recursive = false, error unless source_file must not be a directory and target must be a directory
+	// 3) len(args) >= 2, *recursive = true, target is existing directory
+	// 4) len(args) >= 2, *recursive = true, target does not exist
+
+	if !recursive {
+		if len(args) == 2 {
+			return copyFiles1(sources[0], target, copyfunc)
+		} else {
+			return copyFiles2(sources, target, copyfunc)
+		}
+	}
+
+	t, err := os.Stat(target)
+	if err != nil {
+		if t.IsDir() {
+			return copyFiles3(sources, target, copyfunc)
+		} else {
+			return fmt.Errorf("%s: not a directory", target)
+		}
+	}
+
+	return copyFiles4(sources, target, copyfunc)
+}
+
+func copyFiles1(source string, target string, copyfunc CopyFunc) error {
+	return copyFiles([]string{source}, target, false, copyfunc)
+}
+
+func copyFiles2(sources []string, target string, copyfunc CopyFunc) error {
+	return copyFiles(sources, target, false, copyfunc)
+}
+
+func copyFiles3(sources []string, target string, copyfunc CopyFunc) error {
+	return copyFiles(sources, target, true, copyfunc)
+}
+
+func copyFiles4(sources []string, target string, copyfunc CopyFunc) error {
+	return copyFiles(sources, target, true, copyfunc)
+}
+
+func copyFiles(sources []string, target string, recursive bool, copyfunc CopyFunc) error {
 	fileList := [][2]string{}
 
 	// Assemble list of {sourceFile, sourceDir}

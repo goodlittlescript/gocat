@@ -39,9 +39,7 @@ options:
 		os.Exit(1)
 	}
 
-	sources := args[:len(args)-1]
-	target := args[len(args)-1]
-	err := gocat.CopyFiles(sources, target, recursive, gocat.CopyStream)
+	err := gocat.CopyFiles(args, recursive, gocat.CopyStream)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
