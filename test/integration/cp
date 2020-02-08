@@ -11,30 +11,32 @@ mkdir -p "$ts_test_dir"
 cd "$ts_test_dir"
 }
 
-test_cp () {
-printf "data\n" > src
-$CP src dst
-cat dst | assert_output "\
+#######################################################################
+# form 1 (source, target)
+#
+
+test_cp1 () {
+printf "data\n" > source
+$CP source target
+cat target | assert_output "\
 data
 "
 }
 
-test_cp_multiple_sources () {
-printf "data a\n" > src_a
-printf "data b\n" > src_b
-mkdir dst
-$CP src_a src_b dst
-cat dst/src_a dst/src_b | assert_output "\
-data a
-data b
+test_cp1_follows_symlinks () {
+printf "data\n" > source
+ln -s source link
+$CP link target
+cat target | assert_output "\
+data
 "
 }
 
-test_cp_overwrites_existing () {
-printf "data\n" > src
-printf "overwritten\n" > dst
-$CP src dst
-cat dst | assert_output "\
+test_cp1_overwrites_existing () {
+printf "data\n" > source
+printf "overwritten\n" > target
+$CP source target
+cat target | assert_output "\
 data
 "
 }
@@ -43,44 +45,264 @@ data
 # errors
 #
 
-test_no_src_specified () {
-printf "data\n" > src
+test_cp1_no_source_specified () {
+printf "data\n" > source
 ! $CP
 }
 
-test_no_dst_specified () {
-printf "data\n" > src
-! $CP src
+test_cp1_no_target_specified () {
+printf "data\n" > source
+! $CP source
 }
 
-test_src_does_not_exist () {
-$CP src dst
-assert_status 1 $?
+test_cp1_source_does_not_exist () {
+! $CP source target
+assert_status 0 $? "unexpected exit status"
+
+! [ -e target ]
 }
 
-test_src_is_not_file () {
-mkdir src
-$CP src dst
-assert_status 1 $?
+test_cp1_source_target_are_same_file () {
+printf "data\n" > source
+! $CP source source
+assert_status 0 $? "unexpected exit status"
+
+cat source | assert_output "\
+data
+"
 }
 
-test_src_dst_are_same_file () {
-printf "data\n" > src
-$CP src src
-assert_status 1 $?
+#######################################################################
+# form 2 (directory target)
+#
+
+test_cp2 () {
+printf "data\n" > source
+mkdir target
+$CP source target
+cat target/source | assert_output "\
+data
+"
 }
 
-test_multiple_sources_when_dst_does_not_exist () {
-printf "data a\n" > src_a
-printf "data b\n" > src_b
-! $CP src_a src_b dst
+test_cp2_multiple_sources () {
+printf "data a\n" > source_a
+printf "data b\n" > source_b
+mkdir target
+$CP source_a source_b target
+cat target/source_a target/source_b | assert_output "\
+data a
+data b
+"
 }
 
-test_multiple_sources_when_dst_is_file () {
-printf "data a\n" > src_a
-printf "data b\n" > src_b
-touch dst
-! $CP src_a src_b dst
+test_cp2_skip_and_continue_when_source_is_directory () {
+mkdir -p source/d1
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data c\n" > source/c
+
+mkdir -p target
+$CP source/a source/d1 source/c target
+
+find target | sort | assert_output "\
+target
+target/a
+target/c
+"
+assert_status 0 $? "unexpected file created"
+
+cat target/a target/c | assert_output "\
+data a
+data c
+"
+}
+
+#
+# errors
+#
+
+test_cp2_source_is_directory () {
+mkdir source
+! $CP source target
+assert_status 0 $? "unexpected exit status"
+
+! [ -e target ]
+}
+
+test_cp2_target_does_not_exist () {
+printf "data a\n" > source_a
+printf "data b\n" > source_b
+! $CP source_a source_b target
+assert_status 0 $? "unexpected exit status"
+
+! [ -e target ]
+}
+
+test_cp2_target_is_not_directory () {
+printf "data a\n" > source_a
+printf "data b\n" > source_b
+printf "data\n" > target
+
+! $CP source_a source_b target
+assert_status 0 $? "unexpected exit status"
+
+cat target | assert_output "\
+data
+"
+}
+
+#######################################################################
+# form 3.a (-r/-R, target exists and is directory)
+#
+
+test_cp3a () {
+mkdir -p source/d1/d2
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data c\n" > source/d1/d2/c
+
+mkdir -p target
+$CP -R source/a source/d1 target
+
+cat target/a target/d1/b target/d1/d2/c | assert_output "\
+data a
+data b
+data c
+"
+}
+
+test_cp3a_skip_and_continue_when_source_target_are_same_file () {
+mkdir -p source target
+printf "data a\n" > source/a
+printf "data b\n" > target/b
+printf "data c\n" > source/c
+
+$CP -R source/a target/b source/c target
+
+cat target/a target/b target/c | assert_output "\
+data a
+data b
+data c
+"
+}
+
+test_cp3a_skip_and_continue_when_target_is_file () {
+mkdir -p source/d1/d2
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data c\n" > source/d1/d2/c
+printf "data d\n" > source/d
+
+mkdir -p target
+printf "data d1\n" > target/d1
+$CP -R source/a source/d1 source/d target
+
+find target | sort | assert_output "\
+target
+target/a
+target/d
+target/d1
+"
+assert_status 0 $? "unexpected file created"
+
+cat target/a target/d target/d1 | assert_output "\
+data a
+data d
+data d1
+"
+}
+
+# test_cp3_skip_and_continue_when_source_is_dot () {
+# mkdir -p source/d1
+# printf "data a\n" > source/a
+# printf "data c\n" > source/c
+#
+# mkdir -p target
+# $CP -R source/a . source/c target
+#
+# find target | sort | assert_output "\
+# target
+# target/a
+# target/c
+# "
+# assert_status 0 $? "unexpected file created"
+#
+# cat target/a target/c | assert_output "\
+# data a
+# data c
+# "
+# }
+#
+# test_cp3_skip_and_continue_when_source_is_dot_dot () {
+# mkdir -p source/d1
+# printf "data a\n" > source/a
+# printf "data c\n" > source/c
+#
+# mkdir -p target
+# $CP -R source/a .. source/c target
+#
+# ls -R target | assert_output "\
+# target/a
+# target/c
+# "
+# assert_status 0 $? "unexpected file created"
+#
+# cat target/a target/c | assert_output "\
+# data a
+# data c
+# "
+# }
+
+#######################################################################
+# form 3.b (-r/-R, source/target, target does not exist)
+#
+
+test_cp3b () {
+mkdir -p source/d1/d2
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data c\n" > source/d1/d2/c
+
+$CP -R source target
+
+cat target/a target/d1/b target/d1/d2/c | assert_output "\
+data a
+data b
+data c
+"
+}
+
+#
+# errors
+#
+
+test_cp3b_more_than_one_source_and_target_does_not_exist () {
+mkdir -p source/d1/d2
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data d\n" > source/d1/d2/c
+
+! $CP -R source/a source/d1 target
+assert_status 0 $? "unexpected exit status"
+
+! [ -e target ]
+}
+
+test_cp3b_target_is_not_directory () {
+mkdir -p source/d1/d2
+printf "data a\n" > source/a
+printf "data b\n" > source/d1/b
+printf "data d\n" > source/d1/d2/c
+
+touch target
+! $CP -R source target
+# osx cp does not exit non-zero
+# assert_status 0 $? "unexpected exit status"
+
+find target | sort | assert_output "\
+target
+"
 }
 
 #
@@ -90,40 +312,6 @@ touch dst
 test_h_prints_help () {
 skip_unless_gocp
 $CP -h | grep -q "usage: $CP"
-}
-
-#
-# -R
-#
-
-test_R_copies_recursively () {
-mkdir -p "src/dir"
-printf "data a\n" > "src/a"
-printf "data b\n" > "src/dir/b"
-
-$CP -R src dst
-
-cat "dst/a" "dst/dir/b" | assert_output "\
-data a
-data b
-"
-}
-
-#
-# -r
-#
-
-test_r_copies_recursively () {
-mkdir -p "src/dir"
-printf "data a\n" > "src/a"
-printf "data b\n" > "src/dir/b"
-
-$CP -r src dst
-
-cat "dst/a" "dst/dir/b" | assert_output "\
-data a
-data b
-"
 }
 
 . ts
