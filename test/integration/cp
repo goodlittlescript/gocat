@@ -103,7 +103,8 @@ printf "data b\n" > source/d1/b
 printf "data c\n" > source/c
 
 mkdir -p target
-$CP source/a source/d1 source/c target
+! $CP source/a source/d1 source/c target
+assert_status 0 $? "unexpected exit status"
 
 find target | sort | assert_output "\
 target
@@ -164,11 +165,27 @@ printf "data c\n" > source/d1/d2/c
 
 mkdir -p target
 $CP -R source/a source/d1 target
+assert_status 0 $? "unexpected exit status"
 
 cat target/a target/d1/b target/d1/d2/c | assert_output "\
 data a
 data b
 data c
+"
+}
+
+test_cp3a_empty_directory_source () {
+mkdir -p source/d1/d2
+mkdir -p target
+
+$CP -R source target
+assert_status 0 $? "unexpected exit status"
+
+find target | sort | assert_output "\
+target
+target/source
+target/source/d1
+target/source/d1/d2
 "
 }
 
@@ -178,7 +195,8 @@ printf "data a\n" > source/a
 printf "data b\n" > target/b
 printf "data c\n" > source/c
 
-$CP -R source/a target/b source/c target
+! $CP -R source/a target/b source/c target
+assert_status 0 $? "unexpected exit status"
 
 cat target/a target/b target/c | assert_output "\
 data a
@@ -196,7 +214,8 @@ printf "data d\n" > source/d
 
 mkdir -p target
 printf "data d1\n" > target/d1
-$CP -R source/a source/d1 source/d target
+! $CP -R source/a source/d1 source/d target
+assert_status 0 $? "unexpected exit status"
 
 find target | sort | assert_output "\
 target
@@ -220,6 +239,7 @@ data d1
 #
 # mkdir -p target
 # $CP -R source/a . source/c target
+# assert_status 0 $? "unexpected exit status"
 #
 # find target | sort | assert_output "\
 # target
@@ -241,6 +261,7 @@ data d1
 #
 # mkdir -p target
 # $CP -R source/a .. source/c target
+# assert_status 0 $? "unexpected exit status"
 #
 # ls -R target | assert_output "\
 # target/a
@@ -265,11 +286,25 @@ printf "data b\n" > source/d1/b
 printf "data c\n" > source/d1/d2/c
 
 $CP -R source target
+assert_status 0 $? "unexpected exit status"
 
 cat target/a target/d1/b target/d1/d2/c | assert_output "\
 data a
 data b
 data c
+"
+}
+
+test_cp3b_empty_directory_source () {
+mkdir -p source/d1/d2
+
+$CP -R source target
+assert_status 0 $? "unexpected exit status"
+
+find target | sort | assert_output "\
+target
+target/d1
+target/d1/d2
 "
 }
 
