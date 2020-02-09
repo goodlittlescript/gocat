@@ -108,8 +108,9 @@ func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writ
 }
 
 type CopyFunc func(io.Reader, io.Writer) error
+type FailFunc func(error)
 
-func CopyFiles(args []string, recursive bool, copyfunc CopyFunc) error {
+func CopyFiles(args []string, recursive bool, copyfunc CopyFunc, failFunc FailFunc) error {
 	if len(args) == 0 {
 		return fmt.Errorf("missing file operand")
 	}
@@ -121,11 +122,6 @@ func CopyFiles(args []string, recursive bool, copyfunc CopyFunc) error {
 	sources := args[:len(args)-1]
 	target := args[len(args)-1]
 
-	// 1) len(args) = 2 , error if either are directories
-	// 2) len(args) >= 2, *recursive = false, source_file must not be a directory and target must be a directory
-	// 3) len(args) >= 2, *recursive = true, target is existing directory
-	// 4) len(args) >= 2, *recursive = true, target does not exist
-
 	t, err := os.Stat(target)
 	targetExists := (err == nil)
 	targetIsDir := (targetExists && t.IsDir())
@@ -134,21 +130,33 @@ func CopyFiles(args []string, recursive bool, copyfunc CopyFunc) error {
 		if len(args) == 2 && !targetIsDir {
 			return copyFiles1(sources[0], target, copyfunc)
 		} else {
-			return copyFiles2(sources, target, copyfunc)
+			return copyFiles2(sources, target, copyfunc, failFunc)
 		}
 	}
 
 	if targetExists {
-		if targetIsDir {
-			return copyFiles3(sources, target, copyfunc)
-		} else {
+		if !targetIsDir {
 			return fmt.Errorf("%s: not a directory", target)
+		}
+	} else {
+		if len(sources) > 1 {
+			return fmt.Errorf("target '%s' is not a directory", target)
 		}
 	}
 
-	return copyFiles4(sources, target, copyfunc)
+	return copyFiles3(sources, target, targetExists, copyfunc, failFunc)
 }
 
+// First Synopsis Form:
+//
+// The first synopsis form is denoted by two operands, neither of which are
+// existing files of type directory. The cp utility shall copy the contents of
+// source_file (or, if source_file is a file of type symbolic link, the contents
+// of the file referenced by source_file) to the destination path named by
+// target_file.
+//
+// Note: care is taken in the calling contexts to check that target is not a
+// directory, but herein source must be checked to not be a directory.
 func copyFiles1(source string, target string, copyfunc CopyFunc) error {
 	if source == target {
 		return fmt.Errorf("%s and %s are the same file", source, target)
@@ -180,87 +188,82 @@ func copyFiles1(source string, target string, copyfunc CopyFunc) error {
 	return copyfunc(input, output)
 }
 
-// expects sources to be files
-// expects target to be a directory and to already exist
-func copyFiles2(sources []string, target string, copyfunc CopyFunc) error {
-	num_err := 0
+// Second Synopsis Form:
+//
+// The second synopsis form is denoted by two or more operands where the -R or
+// -r options are not specified and the first synopsis form is not applicable.
+// It shall be an error if any source_file is a file of type directory, if
+// target does not exist, or if target is a file of a type defined by the System
+// Interfaces volume of IEEE Std 1003.1-2001, but is not a file of type
+// directory. The cp utility shall copy the contents of each source_file (or, if
+// source_file is a file of type symbolic link, the contents of the file
+// referenced by source_file) to the destination path named by the concatenation
+// of target, a slash character, and the last component of source_file.
+func copyFiles2(sources []string, target string, copyfunc CopyFunc, failFunc FailFunc) error {
 	for _, source := range sources {
 		dest := filepath.Join(target, filepath.Base(source))
 		err := copyFiles1(source, dest, copyfunc)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			num_err += 1
+			failFunc(err)
 		}
 	}
 
-	if num_err > 0 {
-		return fmt.Errorf("non-fatal errors: %d", num_err)
-	} else {
-		return nil
-	}
+	return nil
 }
 
-// sources can be files or directories
-// expects target to be a directory that already exists
-func copyFiles3(sources []string, target string, copyfunc CopyFunc) error {
-	num_err := 0
+// Third/Fourth Synopsis Form:
+//
+// The third and fourth synopsis forms are denoted by two or more operands where
+// the -R or -r options are specified. The cp utility shall copy each file in
+// the file hierarchy rooted in each source_file to a destination path named as
+// follows:
+//
+// * If target exists and is a file of type directory, the name of the
+// corresponding destination path for each file in the file hierarchy shall be
+// the concatenation of target, a slash character, and the pathname of the file
+// relative to the directory containing source_file.
+//
+// * If target does not exist and two operands are specified, the name of the
+// corresponding destination path for source_file shall be target; the name of
+// the corresponding destination path for all other files in the file hierarchy
+// shall be the concatenation of target, a slash character, and the pathname of
+// the file relative to source_file.
+//
+// It shall be an error if target does not exist and more than two operands are
+// specified, or if target exists and is a file of a type defined by the System
+// Interfaces volume of IEEE Std 1003.1-2001, but is not a file of type
+// directory.
+func copyFiles3(sources []string, target string, targetExists bool, copyfunc CopyFunc, failFunc FailFunc) error {
 	for _, source := range sources {
-		base := filepath.Dir(source)
-		err := filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
+		filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			rel, err := filepath.Rel(base, path)
+			rel, err := filepath.Rel(source, path)
 			if err != nil {
 				return err
 			}
 
-			dest := filepath.Join(target, rel)
+			var dest string
+			if targetExists {
+				dest = filepath.Join(target, filepath.Base(source), rel)
+			} else {
+				dest = filepath.Join(target, rel)
+			}
+
 			if f.IsDir() {
 				os.MkdirAll(dest, os.ModePerm)
 				return nil
 			}
 
-			return copyFiles1(path, dest, copyfunc)
-		})
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			num_err += 1
-		}
-	}
-
-	if num_err > 0 {
-		return fmt.Errorf("non-fatal errors: %d", num_err)
-	} else {
-		return nil
-	}
-}
-
-// target does not exist
-func copyFiles4(sources []string, target string, copyfunc CopyFunc) error {
-	if len(sources) > 1 {
-		return fmt.Errorf("target '%s' is not a directory", target)
-	}
-
-	source := sources[0]
-	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		rel, err := filepath.Rel(source, path)
-		if err != nil {
-			return err
-		}
-
-		dest := filepath.Join(target, rel)
-		if f.IsDir() {
-			os.MkdirAll(dest, os.ModePerm)
+			err = copyFiles1(path, dest, copyfunc)
+			if err != nil {
+				failFunc(err)
+			}
 			return nil
-		}
+		})
+	}
 
-		return copyFiles1(path, dest, copyfunc)
-	})
+	return nil
 }
