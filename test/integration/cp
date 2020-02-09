@@ -167,6 +167,16 @@ mkdir -p target
 $CP -R source/a source/d1 target
 assert_status 0 $? "unexpected exit status"
 
+find target | sort | assert_output "\
+target
+target/a
+target/d1
+target/d1/b
+target/d1/d2
+target/d1/d2/c
+"
+assert_status 0 $? "unexpected files"
+
 cat target/a target/d1/b target/d1/d2/c | assert_output "\
 data a
 data b
