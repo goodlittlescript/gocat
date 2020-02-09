@@ -157,7 +157,7 @@ data
 # form 3.a (-r/-R, target exists and is directory)
 #
 
-test_cp3a () {
+test_cp3 () {
 mkdir -p source/d1/d2
 printf "data a\n" > source/a
 printf "data b\n" > source/d1/b
@@ -184,7 +184,7 @@ data c
 "
 }
 
-test_cp3a_empty_directory_source () {
+test_cp3_empty_directory_source () {
 mkdir -p source/d1/d2
 mkdir -p target
 
@@ -199,7 +199,7 @@ target/source/d1/d2
 "
 }
 
-test_cp3a_skip_and_continue_when_source_target_are_same_file () {
+test_cp3_skip_and_continue_when_source_target_are_same_file () {
 mkdir -p source target
 printf "data a\n" > source/a
 printf "data b\n" > target/b
@@ -215,7 +215,7 @@ data c
 "
 }
 
-test_cp3a_skip_and_continue_when_target_is_file () {
+test_cp3_skip_and_continue_when_target_is_file () {
 mkdir -p source/d1/d2
 printf "data a\n" > source/a
 printf "data b\n" > source/d1/b
@@ -289,7 +289,7 @@ data d1
 # form 3.b (-r/-R, source/target, target does not exist)
 #
 
-test_cp3b () {
+test_cp4 () {
 mkdir -p source/d1/d2
 printf "data a\n" > source/a
 printf "data b\n" > source/d1/b
@@ -305,7 +305,7 @@ data c
 "
 }
 
-test_cp3b_empty_directory_source () {
+test_cp4_empty_directory_source () {
 mkdir -p source/d1/d2
 
 $CP -R source target
@@ -322,7 +322,7 @@ target/d1/d2
 # errors
 #
 
-test_cp3b_more_than_one_source_and_target_does_not_exist () {
+test_cp4_more_than_one_source_and_target_does_not_exist () {
 mkdir -p source/d1/d2
 printf "data a\n" > source/a
 printf "data b\n" > source/d1/b
@@ -334,7 +334,7 @@ assert_status 0 $? "unexpected exit status"
 ! [ -e target ]
 }
 
-test_cp3b_target_is_not_directory () {
+test_cp4_target_is_not_directory () {
 mkdir -p source/d1/d2
 printf "data a\n" > source/a
 printf "data b\n" > source/d1/b

@@ -238,55 +238,29 @@ func copyFiles3(sources []string, target string, copyfunc CopyFunc) error {
 	}
 }
 
+// target does not exist
 func copyFiles4(sources []string, target string, copyfunc CopyFunc) error {
-	fileList := [][2]string{}
+	if len(sources) > 1 {
+		return fmt.Errorf("target '%s' is not a directory", target)
+	}
 
-	// Assemble list of {sourceFile, sourceDir}
-	// Keep the dir so that relative paths may be calculated if needed.
-	for _, source := range sources {
-		sourceDir := source
-		err := filepath.Walk(sourceDir, func(sourceFile string, f os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if f.IsDir() {
-				return nil
-			}
-
-			rel, err := filepath.Rel(sourceDir, sourceFile)
-			if err != nil {
-				return err
-			}
-
-			targetFile := filepath.Join(target, rel)
-
-			fileList = append(fileList, [2]string{sourceFile, targetFile})
-			return nil
-		})
-
+	source := sources[0]
+	return filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	// Copy files
-	num_err := 0
-	for _, item := range fileList {
-		sourceFile := item[0]
-		targetFile := item[1]
-
-		os.MkdirAll(filepath.Dir(targetFile), os.ModePerm)
-		err := copyFiles1(sourceFile, targetFile, copyfunc)
+		rel, err := filepath.Rel(source, path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			num_err += 1
+			return err
 		}
-	}
 
-	if num_err > 0 {
-		return fmt.Errorf("non-fatal errors: %d", num_err)
-	} else {
-		return nil
-	}
+		dest := filepath.Join(target, rel)
+		if f.IsDir() {
+			os.MkdirAll(dest, os.ModePerm)
+			return nil
+		}
+
+		return copyFiles1(path, dest, copyfunc)
+	})
 }
