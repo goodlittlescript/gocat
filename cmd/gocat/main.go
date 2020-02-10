@@ -17,7 +17,7 @@ options:
 
 `)
 	help := flag.Bool("h", false, "print help")
-	flag.Bool("u", false, "unbuffer output")
+	flag.Bool("u", false, "unbuffer output") // appears to behave as true, always
 	files := gocat.ParseToEnd()
 
 	if *help {
