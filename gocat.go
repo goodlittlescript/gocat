@@ -174,8 +174,7 @@ func copyFiles1(source string, target string, copyfunc CopyFunc) error {
 
 	input, err := os.Open(source)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		return err
 	}
 	defer input.Close()
 
