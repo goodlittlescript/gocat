@@ -69,7 +69,29 @@ func CopyStream(input io.Reader, output io.Writer) error {
 	}
 }
 
-func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writer) error) error {
+type CatFunc func(io.Reader, io.Writer) error
+type CopyFunc func(string, string) error
+type FailFunc func(error)
+
+func NewCopyFunc(catfunc CatFunc) CopyFunc {
+	return func(source string, target string) error {
+		input, err := os.Open(source)
+		if err != nil {
+			return err
+		}
+		defer input.Close()
+
+		output, err := os.Create(target)
+		if err != nil {
+			return err
+		}
+		defer output.Close()
+
+		return catfunc(input, output)
+	}
+}
+
+func CatFiles(files []string, output io.Writer, catfunc CatFunc) error {
 	if len(files) == 0 {
 		files = append(files, "-")
 	}
@@ -98,7 +120,7 @@ func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writ
 		}
 		defer input.Close()
 
-		err = copyfunc(input, output)
+		err = catfunc(input, output)
 		if err != nil {
 			return err
 		}
@@ -107,10 +129,14 @@ func CatFiles(files []string, output io.Writer, copyfunc func(io.Reader, io.Writ
 	return nil
 }
 
-type CopyFunc func(io.Reader, io.Writer) error
-type FailFunc func(error)
+func CopyFiles(args []string, recursive bool, copyfunc CopyFunc, failfunc FailFunc) {
+	err := copyFiles(args, recursive, copyfunc, failfunc)
+	if err != nil {
+		failfunc(err)
+	}
+}
 
-func CopyFiles(args []string, recursive bool, copyfunc CopyFunc, failFunc FailFunc) error {
+func copyFiles(args []string, recursive bool, copyfunc CopyFunc, failfunc FailFunc) error {
 	if len(args) == 0 {
 		return fmt.Errorf("missing file operand")
 	}
@@ -130,7 +156,7 @@ func CopyFiles(args []string, recursive bool, copyfunc CopyFunc, failFunc FailFu
 		if len(args) == 2 && !targetIsDir {
 			return copyFiles1(sources[0], target, copyfunc)
 		} else {
-			return copyFiles2(sources, target, copyfunc, failFunc)
+			return copyFiles2(sources, target, copyfunc, failfunc)
 		}
 	}
 
@@ -144,7 +170,7 @@ func CopyFiles(args []string, recursive bool, copyfunc CopyFunc, failFunc FailFu
 		}
 	}
 
-	return copyFiles3(sources, target, targetExists, copyfunc, failFunc)
+	return copyFiles3(sources, target, targetExists, copyfunc, failfunc)
 }
 
 // First Synopsis Form:
@@ -172,19 +198,7 @@ func copyFiles1(source string, target string, copyfunc CopyFunc) error {
 		return fmt.Errorf("%s is a directory (not copied).", source)
 	}
 
-	input, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-	defer input.Close()
-
-	output, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer output.Close()
-
-	return copyfunc(input, output)
+	return copyfunc(source, target)
 }
 
 // Second Synopsis Form:
@@ -198,12 +212,12 @@ func copyFiles1(source string, target string, copyfunc CopyFunc) error {
 // source_file is a file of type symbolic link, the contents of the file
 // referenced by source_file) to the destination path named by the concatenation
 // of target, a slash character, and the last component of source_file.
-func copyFiles2(sources []string, target string, copyfunc CopyFunc, failFunc FailFunc) error {
+func copyFiles2(sources []string, target string, copyfunc CopyFunc, failfunc FailFunc) error {
 	for _, source := range sources {
 		dest := filepath.Join(target, filepath.Base(source))
 		err := copyFiles1(source, dest, copyfunc)
 		if err != nil {
-			failFunc(err)
+			failfunc(err)
 		}
 	}
 
@@ -232,7 +246,7 @@ func copyFiles2(sources []string, target string, copyfunc CopyFunc, failFunc Fai
 // specified, or if target exists and is a file of a type defined by the System
 // Interfaces volume of IEEE Std 1003.1-2001, but is not a file of type
 // directory.
-func copyFiles3(sources []string, target string, targetExists bool, copyfunc CopyFunc, failFunc FailFunc) error {
+func copyFiles3(sources []string, target string, targetExists bool, copyfunc CopyFunc, failfunc FailFunc) error {
 	for _, source := range sources {
 		filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
@@ -258,7 +272,7 @@ func copyFiles3(sources []string, target string, targetExists bool, copyfunc Cop
 
 			err = copyFiles1(path, dest, copyfunc)
 			if err != nil {
-				failFunc(err)
+				failfunc(err)
 			}
 			return nil
 		})

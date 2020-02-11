@@ -40,15 +40,11 @@ options:
 	}
 
 	num_fail := 0
-	err := gocat.CopyFiles(args, recursive, gocat.CopyStream, func(failure error) {
-		fmt.Fprintf(os.Stderr, "%s\n", failure)
+	copyfunc := gocat.NewCopyFunc(gocat.CopyStream)
+	gocat.CopyFiles(args, recursive, copyfunc, func(err error) {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
 		num_fail += 1
 	})
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
-		os.Exit(1)
-	}
 
 	if num_fail > 0 {
 		os.Exit(1)
