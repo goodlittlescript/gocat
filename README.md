@@ -33,23 +33,13 @@ Add `gocat` to your PATH (or execute it directly).
 
 ## DEVELOPMENT
 
-Clone repo, build images.
+Clone repo, build images, get a shell for development.
 
 ```bash
-./Stackfile images
-```
-
-Get a shell for development.
-
-```bash
-./Stackfile shell
+./Projectfile images shell
 # go build
 # ./gocat <<<"success"
 # ./test/suite
 ```
 
-Test, fix, and lint.
-
-```bash
-./Stackfile test fix lint
-```
+See `./Projectfile -h` for additional help.

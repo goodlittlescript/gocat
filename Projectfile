@@ -1,0 +1,78 @@
+#!/bin/bash
+export PACKAGE=goodlittlescript.com/gocat
+
+#
+# develop
+#
+
+clean () {
+	docker-compose down --remove-orphans --rmi all
+}
+
+images () {
+	docker-compose build --compress --parallel --build-arg PACKAGE="${PACKAGE}"
+}
+
+test () {
+	docker-compose run --rm shell ./test/suite
+}
+
+lint () {
+	docker-compose run --rm shell test -z "$(gofmt -s -e -d . | tee /dev/stderr)"
+}
+
+fix () {
+	docker-compose run --rm shell gofmt -s -w .
+}
+
+shell () {
+	docker-compose run --rm shell /bin/bash
+}
+
+#
+# utility
+#
+
+list () {
+	compgen -A function
+}
+
+usage () {
+printf "%s" "\
+usage: ./Projectfile [command...]
+
+  Command file with project workflow and helpers.
+
+example:
+
+  # make images, get a shell
+  ./Projectfile images shell
+
+options:
+
+  -h      prints help
+  -l      list commands
+
+"
+}
+args=""
+while [ $OPTIND -le $# ]
+do
+  if getopts "hl" opt
+  then
+    case "$opt" in
+      (h) usage; exit 0 ;;
+      (l) list; exit 0 ;;
+      (*) list | head -n 1 >&2
+          exit 1 ;;
+    esac
+  else
+    args="$args \"\${$OPTIND}\""
+    OPTIND=$(($OPTIND + 1))
+  fi
+done
+eval set -- $args
+
+while [ $# -gt 0 ]
+do "$1"; shift 1
+done
