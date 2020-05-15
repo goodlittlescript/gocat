@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"gocat"
 	"os"
 )
@@ -27,9 +26,5 @@ options:
 	}
 
 	err := gocat.CatFiles(files, os.Stdout, gocat.CopyStream)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
-		os.Exit(1)
-	}
+	gocat.Check(err)
 }

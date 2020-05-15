@@ -50,6 +50,13 @@ func ParseToEnd() []string {
 	return args
 }
 
+func Check(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s\n", os.Args[0], err)
+		os.Exit(1)
+	}
+}
+
 func CopyStream(input io.Reader, output io.Writer) error {
 	buffer := make([]byte, 1024)
 	for {
