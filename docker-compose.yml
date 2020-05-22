@@ -5,8 +5,9 @@ services:
     build:
       network: host
       context: .
-      target: shell
-    environment: {}
+      dockerfile: Dockerfile
+    command: sleep 31536000
+    working_dir: /go/src/$PACKAGE
     volumes:
-    - $PWD/tmp/home:/home/appuser
+    - ./tmp/home:/home/appuser
     - .:/go/src/$PACKAGE
