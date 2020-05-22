@@ -13,7 +13,10 @@ RUN apt-get install -y --no-install-recommends ca-certificates sudo vim less cur
     adduser appuser sudo && \
     printf "%s\n" "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     curl -o /usr/local/bin/ts -L https://raw.githubusercontent.com/thinkerbot/ts/v2.0.3/bin/ts && \
-    chmod +x /usr/local/bin/ts
+    chmod +x /usr/local/bin/ts && \
+    curl -s -L -O https://github.com/goreleaser/goreleaser/releases/download/v0.135.0/goreleaser_Linux_x86_64.tar.gz && \
+    tar -xf goreleaser_Linux_x86_64.tar.gz && rm goreleaser_Linux_x86_64.tar.gz && \
+    mv goreleaser /usr/local/bin/goreleaser
 USER appuser
 
 # Enable go modules

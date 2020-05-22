@@ -1,0 +1,22 @@
+builds:
+- id: gocat
+  binary: bin/gocat
+  main: cmd/gocat/main.go
+- id: gocp
+  binary: bin/gocp
+  main: cmd/gocp/main.go
+archives:
+- format: zip
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    386: i386
+    amd64: x86_64
+  files:
+  - README*
+  - man/*
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
