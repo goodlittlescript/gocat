@@ -1,8 +1,8 @@
 FROM golang:1.13
 
 # Setup appuser
-RUN groupadd -g 900 appuser && \
-    useradd -r -u 900 -g appuser appuser -m -s /bin/bash
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser appuser -m -s /bin/bash
 
 # Install workflow dependencies
 RUN apt-get update && \

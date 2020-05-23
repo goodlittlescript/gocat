@@ -36,6 +36,36 @@ logs () {
   docker-compose logs -f
 }
 
+release () {
+  RELEASE_VERSION="$1"
+  RELEASE_DATE="$(date +"%Y-%m-%d")"
+
+  # set new version
+  sed -i "" \
+    -e "s/RELEASE_VERSION=.*/RELEASE_VERSION=\"$RELEASE_VERSION\"/" \
+    -e "s/RELEASE_DATE=.*/RELEASE_DATE=\"$RELEASE_DATE\"/" \
+    ./Projectfile
+
+  # generate manpages
+  ./Projectfile manpages
+
+  # print next steps
+  cat >&2 <<DOC
+Next steps:
+
+  git status # double check your changes
+
+  git commit -a -m "Release $RELEASE_VERSION"
+  git push origin master
+
+  git tag "v$RELEASE_VERSION"  
+  git push origin --tags
+
+A draft release will be created by GitHub Actions.  Take a look, write release
+notes, and publish if desired.
+DOC
+}
+
 #
 # helpers
 #

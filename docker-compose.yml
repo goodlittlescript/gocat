@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile
     command: sleep 31536000
     working_dir: /go/src/$PACKAGE
+    environment:
+    - GITHUB_TOKEN
     volumes:
     - ./tmp/home:/home/appuser
     - .:/go/src/$PACKAGE
