@@ -54,12 +54,13 @@ _test () {
  
 _manpages () {
   mkdir -p man/man1
-  ls cmd/*/MANPAGE.1.md |
+  ls cmd/*/MANPAGE.md |
   while read manpagemd
   do
-    command="$(basename "$(dirname "$manpagemd")")"
-    envsubst '$RELEASE_VERSION $RELEASE_DATE' < "$manpagemd" |
-    pandoc --standalone -f markdown -t man - > "man/man1/$command.1"
+    export COMMAND="$(basename "$(dirname "$manpagemd")")"
+    cat cmd/MANPAGE_HEADER.md "$manpagemd" cmd/MANPAGE_FOOTER.md |
+    envsubst '$COMMAND $RELEASE_VERSION $RELEASE_DATE' |
+    pandoc --standalone -f markdown -t man - > "man/man1/$COMMAND.1"
   done
 }
 

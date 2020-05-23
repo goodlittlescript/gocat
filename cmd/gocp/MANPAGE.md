@@ -1,11 +1,3 @@
----
-title: gocp(1) ${RELEASE_VERSION} | manual
-version: ${RELEASE_VERSION}
-date: ${RELEASE_DATE}
-author:
-- Simon Chiang (github.com/thinkerbot)
-adjusting: both
----
 NAME
 ====
 
@@ -37,3 +29,8 @@ COPYRIGHT
 =========
 
 2020 GoodLittleScript http://github.com/goodlittlescript
+
+WWW
+=========
+
+https://github.com/goodlittlescript/gocat

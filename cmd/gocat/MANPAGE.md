@@ -1,11 +1,3 @@
----
-title: gocat(1) ${RELEASE_VERSION} | manual
-version: ${RELEASE_VERSION}
-date: ${RELEASE_DATE}
-author:
-- Simon Chiang (github.com/thinkerbot)
-adjusting: both
----
 NAME
 ====
 
@@ -14,7 +6,7 @@ NAME
 SYNOPSIS
 ========
 
-| **gocat** `[options]` `[FILES...]`
+| **gocat** `[options]` `[file ...]`
 
 DESCRIPTION
 ===========
@@ -46,8 +38,3 @@ Use **gocat** to print the contents of the file:
 gocat file
 # content
 ```
-
-COPYRIGHT
-=========
-
-2020 GoodLittleScript http://github.com/goodlittlescript
