@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
 export PACKAGE=goodlittlescript.com/gocat
-export RELEASE_VERSION='0.0-rc2'
+export RELEASE_VERSION='v0.0-rc3'
 export RELEASE_DATE='2020-05-23'
 
 #
