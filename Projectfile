@@ -30,41 +30,47 @@ logs () {
   docker-compose logs -f
 }
 
-lint () {
-  _run gofmt -s -e -d .
-}
-
-fix () {
-  _run gofmt -s -w .
-}
-
-test () {
-  _run ./test/suite
-}
-
-
 #
-# utility
+# helpers
 #
 
-_run () {
-  if command -v docker-compose >/dev/null 2>&1
-  then docker-compose run --rm shell "$@"
-  else "$@"
-  fi
+_lint () {
+  gofmt -s -e -d .
+}
+
+_fix () {
+  gofmt -s -w .
+}
+
+_test () {
+  ./test/suite
+}
+
+#
+# utility  
+#
+
+run () {
+  docker-compose run --rm shell "$@"
 }
 
 list () {
   compgen -A function
 }
 
-while [ $# -gt 0 ]
-do
-  command="$1"; shift 1
-  if list | grep -qFx "$command"
-  then "$command"
-  else
-    printf "unknown command: %s\n" "$command" >&2
-    exit 1
+unfunctions="$(compgen -A "function" | grep "^_")"
+if command -v docker-compose >/dev/null 2>&1
+then eval "$(awk '{sub("_","");print $1"() {\nrun ./Projectfile "$1"\n}\n"}' <<<"$unfunctions")"
+else eval "$(declare -f $unfunctions | sed -e 's/^_//')"
+fi
+unset -f $unfunctions
+
+if list | grep -qFx -- "${1:-}"
+then "$@"
+else
+  if [ -z "$1" ]
+  then printf "no command specified (try 'list')\n" >&2
+  else printf "unknown command: %s\n" "$1" >&2
   fi
-done
+  exit 1
+fi
