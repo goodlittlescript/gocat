@@ -46,9 +46,6 @@ release () {
     -e "/^export/s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
     ./Projectfile
 
-  # generate manpages
-  ./Projectfile manpages
-
   # print next steps
   cat >&2 <<DOC
 Next steps:
