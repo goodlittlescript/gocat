@@ -1,6 +1,8 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
 export PACKAGE=goodlittlescript.com/gocat
+export RELEASE_VERSION="prerelease"
+export RELEASE_DATE="2020"
 
 #
 # workflow
@@ -48,6 +50,17 @@ _fix () {
 
 _test () {
   ./test/suite
+}
+ 
+_manpages () {
+  mkdir -p man/man1
+  ls cmd/*/MANPAGE.1.md |
+  while read manpagemd
+  do
+    command="$(basename "$(dirname "$manpagemd")")"
+    envsubst '$RELEASE_VERSION $RELEASE_DATE' < "$manpagemd" |
+    pandoc --standalone -f markdown -t man - > "man/man1/$command.1"
+  done
 }
 
 #
