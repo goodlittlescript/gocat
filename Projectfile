@@ -37,13 +37,13 @@ logs () {
 }
 
 release () {
-  RELEASE_VERSION="$1"
-  RELEASE_DATE="$(date +"%Y-%m-%d")"
+  RELEASE_VERSION="${1?no version specified}"
+  RELEASE_DATE="2020-05-23"
 
   # set new version
   sed -i "" \
-    -e "s/RELEASE_VERSION=.*/RELEASE_VERSION=\"$RELEASE_VERSION\"/" \
-    -e "s/RELEASE_DATE=.*/RELEASE_DATE=\"$RELEASE_DATE\"/" \
+    -e "/^export/s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
+    -e "/^export/s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
     ./Projectfile
 
   # generate manpages

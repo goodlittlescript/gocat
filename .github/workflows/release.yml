@@ -12,6 +12,6 @@ jobs:
     - name: Test
       run: ./Projectfile test
     - name: Release
-      run: ./Projectfile run goreleaser release --snapshot --skip-publish --rm-dist
+      run: ./Projectfile run goreleaser release --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
