@@ -15,11 +15,15 @@ up () {
 }
 
 shell () {
-  docker-compose exec shell /bin/bash
+  up && docker-compose exec shell /bin/bash
 }
 
 down () {
   docker-compose stop
+}
+
+run () {
+  docker-compose run --rm shell "$@"
 }
 
 show () {
@@ -49,10 +53,6 @@ _test () {
 #
 # utility  
 #
-
-run () {
-  docker-compose run --rm shell "$@"
-}
 
 list () {
   compgen -A function
