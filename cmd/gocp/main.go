@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gocat"
+	"github.com/goodlittlescript/gocat"
 	"os"
 )
 

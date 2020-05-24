@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"gocat"
+	"github.com/goodlittlescript/gocat"
 	"os"
 )
 
