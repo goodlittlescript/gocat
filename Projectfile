@@ -91,6 +91,11 @@ _manpages () {
   done
 }
 
+_man () {
+  manpages
+  /usr/bin/man "man/man1/${1}.1"
+}
+
 #
 # utility  
 #
@@ -99,12 +104,12 @@ list () {
   compgen -A function
 }
 
-unfunctions="$(compgen -A "function" | grep "^_")"
+unfuncs="$(compgen -A "function" | grep "^_")"
 if command -v docker-compose >/dev/null 2>&1
-then eval "$(awk '{sub("_","");print $1"() {\nrun ./Projectfile "$1"\n}\n"}' <<<"$unfunctions")"
-else eval "$(declare -f $unfunctions | sed -e 's/^_//')"
+then eval "$(awk '{sub("_","");print $1"() {\nrun ./Projectfile "$1" \"\$@\"\n}\n"}' <<<"$unfuncs")"
+else eval "$(declare -f $unfuncs | sed -e 's/^_//')"
 fi
-unset -f $unfunctions
+unset -f $unfuncs
 
 if list | grep -qFx -- "${1:-}"
 then "$@"
