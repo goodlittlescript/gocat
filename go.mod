@@ -1,3 +1,3 @@
-module github.com/goodlittlescript/gocat/v0
+module github.com/goodlittlescript/gocat
 
 go 1.13
