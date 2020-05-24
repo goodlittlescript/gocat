@@ -1,3 +1,9 @@
+---
+title: ${COMMAND}(1) ${RELEASE_VERSION} | Manual
+version: ${RELEASE_VERSION}
+date: ${RELEASE_DATE}
+adjusting: both
+---
 NAME
 ====
 
@@ -25,12 +31,7 @@ These options control how `gocp` operates.
 `-r`
   ~ Copy recursive (OB).
 
-COPYRIGHT
-=========
-
-2020 GoodLittleScript http://github.com/goodlittlescript
-
 WWW
-=========
+===
 
-https://github.com/goodlittlescript/gocat
+${PACKAGE_URL}

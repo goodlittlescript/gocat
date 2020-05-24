@@ -1,3 +1,9 @@
+---
+title: ${COMMAND}(1) ${RELEASE_VERSION} | Manual
+version: ${RELEASE_VERSION}
+date: ${RELEASE_DATE}
+adjusting: both
+---
 NAME
 ====
 
@@ -38,3 +44,8 @@ Use **gocat** to print the contents of the file:
 gocat file
 # content
 ```
+
+WWW
+===
+
+${PACKAGE_URL}
