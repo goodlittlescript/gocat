@@ -40,6 +40,9 @@ logs () {
 release () {
   RELEASE_VERSION="${1?no version specified}"
   RELEASE_DATE="$(date +"%Y-%m-%d")"
+  
+  # normalize version
+  RELEASE_VERSION="${RELEASE_VERSION#v}"
 
   # set new version
   sed -i "" \
