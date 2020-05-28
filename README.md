@@ -31,20 +31,34 @@ gocat afile bfile
 ./Projectfile manpages
 man gocat
 man gocp
+
 ./test/suite
 ```
 
 See [./Projectfile](./Projectfile) for the workflow.
 
-## Compiling from source
+## Install pre-compiled binary
 
-Same as usual, just note the command is in the cmd dir.
+Pick your binary from the available [releases](https://github.com/goodlittlescript/gocat/releases), download, add to PATH.
+
+```shell
+RELEASE_URL="https://github.com/goodlittlescript/gocat/releases/download/...tar.gz"
+INSTALL_DIR="/usr/local/gocat"
+
+mkdir -p "$INSTALL_DIR"
+curl -L "$RELEASE_URL" | tar zxvf - -C "$INSTALL_DIR"
+export PATH="$INSTALL_DIR/bin:$PATH"
+```
+
+## Install from source
+
+Same as usual for go; note the commands are in the cmd dir.
 
 ```shell
 go install github.com/goodlittlescript/gocat/cmd/{gocat,gocp}
 ```
 
-To add manpages, symlink as follows:
+One way to install manpages is to put them under GOPATH (if `$GOPATH/bin` is on your PATH, then they will be autodiscovered by `man`).
 
 ```shell
 mkdir -p "$GOPATH/man/man1"
