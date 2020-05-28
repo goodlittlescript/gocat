@@ -9,7 +9,8 @@ builds:
   binary: bin/gocp
   main: cmd/gocp/main.go
 archives:
-- format: tar.gz
+- id: nix
+  format: tar.gz
   replacements:
     darwin: Darwin
     linux: Linux
@@ -17,7 +18,8 @@ archives:
     amd64: x86_64
   files:
   - man/man1/*
-- format: zip
+- id: windows
+  format: zip
   replacements:
     windows: Windows
   files:
