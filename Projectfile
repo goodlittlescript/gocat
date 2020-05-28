@@ -10,7 +10,7 @@ export RELEASE_DATE='2020-05-23'
 #
 
 images () {
-  docker-compose build --compress --parallel
+  docker-compose build --compress --parallel --build-arg PACKAGE="$PACKAGE"
 }
 
 up () {
