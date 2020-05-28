@@ -25,6 +25,10 @@ down () {
   docker-compose stop
 }
 
+clean () {
+  docker-compose rm -s -f -v
+}
+
 run () {
   docker-compose run --rm shell "$@"
 }
