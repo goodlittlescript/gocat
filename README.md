@@ -1,45 +1,52 @@
-gocat(1) -- POSIX cat in Go
-================================================================
+# GoCat
 
-## SYNOPSIS
+A package for building command line utilities in go that follow the `cat` and `cp` signatures. Also implements both per their respective specifications.
 
-`gocat` [options] [FILES...]
+- [gocat](cmd/gocat/MANPAGE.md) - [POSIX specification](http://pubs.opengroup.org/onlinepubs/000095399/utilities/cat.html).
+- [gocp](cmd/gocp/MANPAGE.md) - [POSIX specification](http://pubs.opengroup.org/onlinepubs/000095399/utilities/cp.html)
 
-## DESCRIPTION
+## Development
 
-The `cat` utility in ruby, per the [POSIX specification](http://pubs.opengroup.org/onlinepubs/000095399/utilities/cat.html).
-
-## OPTIONS
-
-These options control how `gocat` operates.
-
-* `-u`:
-  Unbuffer output.
-
-## EXAMPLES
+Clone repo, build images, get a shell for development:
 
 ```bash
-gocat > file <<DOC
-content
-DOC
-
-gocat file
-# content
+./Projectfile images 
+./Projectfile shell
 ```
 
-## INSTALLATION
-
-Add `gocat` to your PATH (or execute it directly).
-
-## DEVELOPMENT
-
-Clone repo, build images, get a shell for development.
+Now in the shell:
 
 ```bash
-./Projectfile images shell
-# go build
-# ./gocat <<<"success"
-# ./test/suite
+go install ./cmd/gocat
+gocat <<<"success" > afile
+gocat afile
+# success
+
+go install ./cmd/gocp
+gocp afile bfile
+gocat afile bfile
+# success
+# success
+
+./Projectfile manpages
+man gocat
+man gocp
+./test/suite
 ```
 
-See `./Projectfile -h` for additional help.
+See [./Projectfile](./Projectfile) for the workflow.
+
+## Compiling from source
+
+Same as usual, just note the command is in the cmd dir.
+
+```shell
+go install github.com/goodlittlescript/gocat/cmd/{gocat,gocp}
+```
+
+To add manpages, symlink as follows:
+
+```shell
+mkdir -p "$GOPATH/man/man1"
+ln -s "$GOPATH"/github.com/goodlittlescript/gocat/man/man1/{gocat,gocp}.1 "$GOPATH/man/man1"
+```
