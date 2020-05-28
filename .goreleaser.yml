@@ -9,7 +9,7 @@ builds:
   binary: bin/gocp
   main: cmd/gocp/main.go
 archives:
-- format: zip
+- format: tar.gz
   replacements:
     darwin: Darwin
     linux: Linux
@@ -17,6 +17,11 @@ archives:
     amd64: x86_64
   files:
   - man/man1/*
+- format: zip
+  replacements:
+    windows: Windows
+  files:
+  - man/man1/*  # http://gnuwin32.sourceforge.net/packages/groff.htm
 checksum:
   name_template: 'checksums.txt'
 snapshot:
