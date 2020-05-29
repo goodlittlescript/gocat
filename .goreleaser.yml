@@ -9,21 +9,14 @@ builds:
   binary: bin/gocp
   main: cmd/gocp/main.go
 archives:
-- id: nix
-  format: tar.gz
+- format: tar.gz
   replacements:
     darwin: Darwin
     linux: Linux
     386: i386
     amd64: x86_64
   files:
-  - man/man1/*
-- id: windows
-  format: zip
-  replacements:
-    windows: Windows
-  files:
-  - man/man1/*  # http://gnuwin32.sourceforge.net/packages/groff.htm
+  - man/man1
 checksum:
   name_template: 'checksums.txt'
 snapshot:

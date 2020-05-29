@@ -1,0 +1,13 @@
+# TODO
+
+* Documentation for gocat package
+* Add GetEnv (with default)
+* Release as package
+* Release as binaries
+* Complete support for POSIX cp
+
+Epic: Extend to server
+* publish as lambda where events are inputs
+* publish as lambda where events are S3 paths
+* publish as knative where events are inputs
+* publish as knative where events are storage paths
