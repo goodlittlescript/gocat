@@ -7,10 +7,9 @@ A package for building command line utilities in go that follow the `cat` and `c
 
 ## Development
 
-Clone repo, build images, get a shell for development:
+Clone repo, get a shell for development:
 
 ```bash
-./Projectfile images 
 ./Projectfile shell
 ```
 
