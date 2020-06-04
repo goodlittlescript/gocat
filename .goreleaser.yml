@@ -25,3 +25,16 @@ release:
   draft: true
 changelog:
   sort: asc
+dockers:
+  - image_templates:
+    - "goodlittlescript/{{.ProjectName}}:{{ .Tag }}"
+    - "goodlittlescript/{{.ProjectName}}:v{{ .Major }}"
+    - "goodlittlescript/{{.ProjectName}}:v{{ .Major }}.{{ .Minor }}"
+    - "goodlittlescript/{{.ProjectName}}:latest"
+    binaries:
+    - gocat
+    - gocp
+    builds:
+    - gocat
+    - gocp
+    dockerfile: Dockerfile.release
