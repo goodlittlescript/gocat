@@ -5,20 +5,27 @@ export PACKAGE="github.com/${REPO}"
 export PACKAGE_URL="https://github.com/${REPO}"
 export RELEASE_VERSION='0.0-rc8'
 export RELEASE_DATE='2020-05-28'
-export IMAGE="docker.pkg.github.com/${REPO}/gocat"
+export REGISTRY="docker.pkg.github.com/${REPO}/"
 
 #
 # workflow
 #
 
 images () {
-  docker-compose build --compress --parallel --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg PACKAGE="$PACKAGE"
-  docker tag "$IMAGE" "${IMAGE}-cache-2"
-  docker push "${IMAGE}-cache-2"
+  docker-compose build --compress --parallel --build-arg PACKAGE="$PACKAGE"
+}
+
+push () {
+  docker-compose push
+}
+
+pull () {
+  docker-compose pull
 }
 
 up () {
-  docker-compose up --detach
+  # no-build so that reuse of images via docker-compose push/pull is possible
+  docker-compose up --detach --no-build
 }
 
 shell () {

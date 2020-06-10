@@ -2,13 +2,11 @@
 version: '3.6'
 services:
   shell:
-    image: $IMAGE
+    image: ${REGISTRY}shell
     build:
       network: host
       context: .
       dockerfile: Dockerfile
-      cache_from:
-      - "${IMAGE}-cache-2"
     command: sleep 31536000
     working_dir: /go/src/$PACKAGE
     environment:
