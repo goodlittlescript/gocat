@@ -15,16 +15,10 @@ images () {
   docker-compose build --compress --parallel --build-arg PACKAGE="$PACKAGE"
 }
 
-push () {
-  docker-compose push
-}
-
-pull () {
-  docker-compose pull
-}
-
 up () {
-  # no-build so that reuse of images via docker-compose push/pull is possible
+  if [ -z "$(docker-compose images -q)" ]
+  then images
+  fi
   docker-compose up --detach --no-build
 }
 
