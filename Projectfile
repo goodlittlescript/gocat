@@ -1,16 +1,35 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
-export PACKAGE=goodlittlescript.com/gocat
-export PACKAGE_URL="https://github.com/$PACKAGE"
+export REPO="goodlittlescript/gocat"
+export PACKAGE="github.com/${REPO}"
+export PACKAGE_URL="https://github.com/${REPO}"
 export RELEASE_VERSION='0.0-rc8'
 export RELEASE_DATE='2020-05-28'
+export CACHE_REGISTRY="docker.pkg.github.com"
+export CACHE_REPO_URL="${CACHE_REGISTRY}/${REPO}"
 
 #
 # workflow
 #
 
 images () {
-  docker-compose build --compress --parallel --build-arg PACKAGE="$PACKAGE"
+  config_dir="$HOME/.kaniko"
+  mkdir -p "$config_dir"
+  touch "$config_dir/config.json"
+  chmod 0600 "$config_dir/config.json"
+  jq -n --arg registry "$CACHE_REGISTRY" --arg token "$GITHUB_TOKEN" '
+    .auths["https://\($registry)"]["auth"] = ("goodlittlescript:\($token)" | @base64)
+  ' > "$config_dir/config.json"
+
+  docker run --rm \
+    -v "$PWD:/workspace" \
+    -v "$config_dir/config.json":/kaniko/.docker/config.json \
+    gcr.io/kaniko-project/executor:latest \
+    --dockerfile /workspace/Dockerfile \
+    --destination "$CACHE_REPO_URL/example:shell" \
+    --context dir:///workspace/ \
+    --cache-repo "$CACHE_REPO_URL/cache" \
+    --cache=true
 }
 
 up () {
