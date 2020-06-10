@@ -1,18 +1,13 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
-export REPO="goodlittlescript/gocat"
-export PACKAGE="github.com/${REPO}"
-export PACKAGE_URL="https://github.com/${REPO}"
-export RELEASE_VERSION='0.0-rc8'
-export RELEASE_DATE='2020-05-28'
-export REGISTRY="docker.pkg.github.com/${REPO}/"
+source .env
 
 #
 # workflow
 #
 
 images () {
-  docker-compose build --compress --parallel --build-arg PACKAGE="$PACKAGE"
+  docker-compose build --compress --parallel
 }
 
 up () {
@@ -55,9 +50,9 @@ release () {
 
   # set new version
   sed -i "" \
-    -e "/^export/s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
-    -e "/^export/s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
-    ./Projectfile
+    -e "s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
+    -e "s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
+    .env
 
   # print next steps
   cat >&2 <<DOC
@@ -93,6 +88,8 @@ _test () {
 }
 
 _manpages () {
+  export PACKAGE_URL="https://${PACKAGE}"
+  export RELEASE_VERSION RELEASE_DATE
   mkdir -p man/man1
   ls cmd/*/MANPAGE.md |
   while read manpagemd

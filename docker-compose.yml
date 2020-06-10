@@ -2,15 +2,16 @@
 version: '3.6'
 services:
   shell:
-    image: ${REGISTRY}shell
+    image: ${REGISTRY:-}shell
     build:
       network: host
       context: .
       dockerfile: Dockerfile
+      args:
+        PACKAGE: ${PACKAGE:-pkg}
     command: sleep 31536000
-    working_dir: /go/src/$PACKAGE
     environment:
     - GITHUB_TOKEN
     volumes:
     - ./tmp/home:/home/appuser
-    - .:/go/src/$PACKAGE
+    - .:/go/src/${PACKAGE:-pkg}
