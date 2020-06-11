@@ -1,10 +1,18 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
-source .env
+export PACKAGE=github.com/goodlittlescript/gocat
+export PACKAGE_URL="https://${PACKAGE}"
+export REGISTRY=docker.pkg.github.com/goodlittlescript/gocat
+export RELEASE_VERSION='0.0-rc8'
+export RELEASE_DATE='2020-06-11'
 
 #
 # workflow
 #
+
+printenv () {
+  env | sort | grep -E '^(PACKAGE|REGISTRY|RELEASE_)'
+}
 
 images () {
   docker-compose build --compress --parallel
@@ -44,15 +52,13 @@ logs () {
 release () {
   RELEASE_VERSION="${1?no version specified}"
   RELEASE_DATE="$(date +"%Y-%m-%d")"
-  
-  # normalize version
-  RELEASE_VERSION="${RELEASE_VERSION#v}"
 
   # set new version
+  RELEASE_VERSION="${RELEASE_VERSION#v}"
   sed -i "" \
-    -e "s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
-    -e "s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
-    .env
+    -e "/^export /s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
+    -e "/^export /s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
+    Projectfile
 
   # print next steps
   cat >&2 <<DOC
@@ -88,8 +94,6 @@ _test () {
 }
 
 _manpages () {
-  export PACKAGE_URL="https://${PACKAGE}"
-  export RELEASE_VERSION RELEASE_DATE
   mkdir -p man/man1
   ls cmd/*/MANPAGE.md |
   while read manpagemd
