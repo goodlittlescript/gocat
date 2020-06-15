@@ -55,7 +55,7 @@ run () {
 
 # lint code
 _lint () {
-  gofmt -s -e -d . && manpages && git diff man --name-only --exit-code
+  gofmt -s -e -d . && manpages && git diff --exit-code man
 }
 
 # fix lint errors as possible
