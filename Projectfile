@@ -1,5 +1,10 @@
 #!/bin/bash
 # usage: ./Projectfile [command]
+
+#
+# env - put these in a .env to use docker-compose directly
+#
+
 export PACKAGE=github.com/goodlittlescript/gocat
 export PACKAGE_URL="https://${PACKAGE}"
 export REGISTRY=docker.pkg.github.com/goodlittlescript/gocat
@@ -10,14 +15,13 @@ export RELEASE_DATE='2020-06-11'
 # workflow
 #
 
-printenv () {
-  env | sort | grep -E '^(PACKAGE|REGISTRY|RELEASE_)'
-}
-
+# builds images locally - use 'docker-compose push/pull' to cache images in
+# REGISTRY, which may facilitate remote builds.
 images () {
-  docker-compose build --compress --parallel
+  docker-compose build
 }
 
+# start the shell container if it doesn't exist, building images if needed
 up () {
   if [ -z "$(docker-compose images -q)" ]
   then images
@@ -25,30 +29,53 @@ up () {
   docker-compose up --detach --no-build
 }
 
+# get a shell - can be used multiple times
 shell () {
   up && docker-compose exec shell /bin/bash
 }
 
+# stop the shell container
 down () {
   docker-compose stop
 }
 
+# remove the shell container and related stuff
 clean () {
   docker-compose rm -s -f -v
 }
 
+# run a command in a shell container
 run () {
   docker-compose run --rm shell "$@"
 }
 
-show () {
-  docker-compose ps
+#
+# helpers
+#
+
+# lint code
+_lint () {
+  gofmt -s -e -d .
 }
 
-logs () {
-  docker-compose logs -f
+# fix lint errors as possible
+_fix () {
+  gofmt -s -w .
 }
 
+# compile manpages
+_manpages () {
+  mkdir -p man/man1
+  ls cmd/*/MANPAGE.md |
+  while read manpagemd
+  do
+    export COMMAND="$(basename "$(dirname "$manpagemd")")"
+    envsubst '$COMMAND $PACKAGE_URL $RELEASE_VERSION $RELEASE_DATE' < "$manpagemd" |
+    pandoc --standalone -f markdown -t man - > "man/man1/$COMMAND.1"
+  done
+}
+
+# prepare a release
 release () {
   RELEASE_VERSION="${1?no version specified}"
   RELEASE_DATE="$(date +"%Y-%m-%d")"
@@ -78,45 +105,16 @@ DOC
 }
 
 #
-# helpers
-#
-
-_lint () {
-  gofmt -s -e -d .
-}
-
-_fix () {
-  gofmt -s -w .
-}
-
-_test () {
-  ./test/suite
-}
-
-_manpages () {
-  mkdir -p man/man1
-  ls cmd/*/MANPAGE.md |
-  while read manpagemd
-  do
-    export COMMAND="$(basename "$(dirname "$manpagemd")")"
-    envsubst '$COMMAND $PACKAGE_URL $RELEASE_VERSION $RELEASE_DATE' < "$manpagemd" |
-    pandoc --standalone -f markdown -t man - > "man/man1/$COMMAND.1"
-  done
-}
-
-_man () {
-  manpages
-  /usr/bin/man "man/man1/${1}.1"
-}
-
-#
 # utility  
 #
 
+# list commands available
 list () {
   compgen -A function
 }
 
+# make _ functions available both in and out of the shell container by:
+# 1) removing the _ 2) wrapping them in run if outside the container
 unfuncs="$(compgen -A "function" | grep "^_")"
 if command -v docker-compose >/dev/null 2>&1
 then eval "$(awk '{sub("_","");print $1"() {\nrun ./Projectfile "$1" \"\$@\"\n}\n"}' <<<"$unfuncs")"
