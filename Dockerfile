@@ -1,4 +1,4 @@
-FROM golang:1.13
+FROM golang:1.14
 
 # Setup appuser
 RUN groupadd -g 1001 appuser && \
@@ -8,13 +8,10 @@ RUN groupadd -g 1001 appuser && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates sudo vim less curl jq git man gettext pandoc && \
     adduser appuser sudo && \
-    printf "%s\n" "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    curl -s -L -O https://github.com/goreleaser/goreleaser/releases/download/v0.135.0/goreleaser_Linux_x86_64.tar.gz && \
-    tar -xf goreleaser_Linux_x86_64.tar.gz && rm goreleaser_Linux_x86_64.tar.gz && \
-    mv goreleaser /usr/local/bin/goreleaser
+    printf "%s\n" "appuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Set working directory
-ARG PACKAGE
+ARG PACKAGE=pkg
 RUN mkdir -p /go/src/$PACKAGE && \
     ln -s /go/src/$PACKAGE/man /go/man
 WORKDIR /go/src/$PACKAGE
