@@ -63,6 +63,11 @@ _fix () {
   gofmt -s -w . && manpages
 }
 
+# run tests
+_test () {
+  ./test/suite
+}
+
 # compile manpages
 _manpages () {
   mkdir -p man/man1
