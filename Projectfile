@@ -8,8 +8,8 @@
 export PACKAGE=github.com/goodlittlescript/gocat
 export PACKAGE_URL="https://${PACKAGE}"
 export REGISTRY=docker.pkg.github.com/goodlittlescript/gocat
-export RELEASE_VERSION='0.0-rc8'
-export RELEASE_DATE='2020-06-11'
+export RELEASE_VERSION='0.0-rc9'
+export RELEASE_DATE='2020-06-15'
 
 #
 # workflow
