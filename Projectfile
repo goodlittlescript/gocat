@@ -55,12 +55,12 @@ run () {
 
 # lint code
 _lint () {
-  gofmt -s -e -d .
+  gofmt -s -e -d . && manpages && git diff man --name-only --exit-code
 }
 
 # fix lint errors as possible
 _fix () {
-  gofmt -s -w .
+  gofmt -s -w . && manpages
 }
 
 # compile manpages
@@ -86,6 +86,9 @@ release () {
     -e "/^export /s|RELEASE_VERSION=.*|RELEASE_VERSION='$RELEASE_VERSION'|" \
     -e "/^export /s|RELEASE_DATE=.*|RELEASE_DATE='$RELEASE_DATE'|" \
     Projectfile
+
+  # fix any issues
+  fix
 
   # print next steps
   cat >&2 <<DOC
