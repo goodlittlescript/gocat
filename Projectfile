@@ -107,8 +107,7 @@ Next steps:
   git tag "v$RELEASE_VERSION"  
   git push origin --tags
 
-A draft release will be created by GitHub Actions.  Take a look, write release
-notes, and publish if desired.
+A release will be created by GitHub Actions.
 DOC
 }
 
