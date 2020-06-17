@@ -22,10 +22,10 @@ changelog:
   sort: asc
 dockers:
   - image_templates:
-    - "goodlittlescript/{{.ProjectName}}:{{ .Tag }}"
-    - "goodlittlescript/{{.ProjectName}}:v{{ .Major }}"
-    - "goodlittlescript/{{.ProjectName}}:v{{ .Major }}.{{ .Minor }}"
-    - "goodlittlescript/{{.ProjectName}}:latest"
+    - "docker.pkg.github.com/goodlittlescript/gocat:{{ .Tag }}"
+    - "docker.pkg.github.com/goodlittlescript/gocat:v{{ .Major }}"
+    - "docker.pkg.github.com/goodlittlescript/gocat:v{{ .Major }}.{{ .Minor }}"
+    - "docker.pkg.github.com/goodlittlescript/gocat:latest"
     binaries:
     - gocat
     - gocp
