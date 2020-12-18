@@ -13,7 +13,7 @@ abc
 }
 
 test_cat_concatenates_files () {
-printf "%s\n" c | $CAT <(printf "%s\n" a b) - | assert_output "\
+printf "%s\n" c | $CAT <(printf "%s\n" a b) -u - | assert_output "\
 a
 b
 c
